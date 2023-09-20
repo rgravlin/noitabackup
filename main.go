@@ -112,13 +112,23 @@ func copyFile(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+	defer func(out *os.File) {
+		err := out.Close()
+		if err != nil {
+			log.Fatalf("%s (%s): %v", "error closing file", dst, err)
+		}
+	}(out)
 
 	in, err := os.Open(src)
 	if err != nil {
 		return err
 	}
-	defer in.Close()
+	defer func(in *os.File) {
+		err := in.Close()
+		if err != nil {
+			log.Fatalf("%s (%s): %v", "error closing file", src, err)
+		}
+	}(in)
 
 	_, err = io.Copy(out, in)
 	if err != nil {
