@@ -19,22 +19,21 @@ path, so you can run it from anywhere.
 If you'd like to configure the source or destination please
 use the following:
 
-## PowerShell
+## PowerShell - Alter default configuration
 
 ```commandline
-PS C:\> $env:CONFIG_NOITA_DST_PATH = 'C:\Your\Backup\Path'
-PS C:\> $env:CONFIG_NOITA_SRC_PATH = 'D:\Your\Noita\Path\save00'
-PS C:\> noitabackup
-2023/09/19 08:12:01 Timestamp: 2023-09-19-08-11-59
-2023/09/19 08:12:01 Total dirs copied: 8
-2023/09/19 08:12:01 Total files copied: 2057
+PS C:\> $env:CONFIG_NOITA_DST_PATH = 'C:\Users\demo\backuptest'
+PS C:\> .\noitabackup.exe
+2023/09/20 08:55:39 Destination: C:\Users\demo\backuptest\2023-09-20-08-55-39
+2023/09/20 08:55:39 Timestamp: 2023-09-20-08-55-39
+2023/09/20 08:55:39 Total dirs copied: 8
+2023/09/20 08:55:39 Total files copied: 2057
 ```
-## Command Line
+## Command Line - Alter default configuration
 ```commandline
-PS C:\> $env:CONFIG_NOITA_DST_PATH = 'C:\Your\Backup\Path'
-PS C:\> $env:CONFIG_NOITA_SRC_PATH = 'D:\Your\Noita\Path\save00'
-PS C:\> noitabackup
-2023/09/19 08:12:01 Timestamp: 2023-09-19-08-11-59
-2023/09/19 08:12:01 Total dirs copied: 8
-2023/09/19 08:12:01 Total files copied: 2057
+C:\> set CONFIG_NOITA_DST_PATH='C:\Users\demo\backuptest'
+C:\> noitabackup.exe
+2023/09/20 08:58:06 Destination: C:\Users\demo\backuptest\2023-09-20-08-58-05
+2023/09/20 08:58:06 Total dirs copied: 8
+2023/09/20 08:58:06 Total files copied: 2078
 ```

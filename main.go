@@ -53,7 +53,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Printf("%s: %s\n", "Timestamp", datePath)
+	log.Printf("%s: %s\n", "Destination", dstPath)
 	log.Printf("%s: %d\n", "Total dirs copied", dCounter)
 	log.Printf("%s: %d\n", "Total files copied", fCounter)
 }
@@ -72,13 +72,6 @@ func copyDirectory(src, dst string) error {
 			return err
 		}
 
-		/* TODO: Make OS interface
-		stat, ok := srcInfo.Sys().(*syscall.Stat_t)
-		if !ok {
-			return fmt.Errorf("failed to get raw syscall.Stat_t data for '%s'", srcPath)
-		}
-		*/
-
 		switch srcInfo.Mode() & os.ModeType {
 		case os.ModeDir:
 			if err := createIfNotExists(dstPath, 0755); err != nil {
@@ -88,24 +81,16 @@ func copyDirectory(src, dst string) error {
 				return err
 			}
 			dCounter += 1
-			/* TODO: Case not needed so far
-			case os.ModeSymlink:
-				if err := copySymLink(srcPath, dstPath); err != nil {
-					return err
-				}
-			*/
+		case os.ModeSymlink:
+			if err := copySymLink(srcPath, dstPath); err != nil {
+				return err
+			}
 		default:
 			if err := copyFile(srcPath, dstPath); err != nil {
 				return err
 			}
 			fCounter += 1
 		}
-
-		/* TODO: Make OS interface
-		if err := os.Lchown(dstPath, int(stat.Uid), int(stat.Gid)); err != nil {
-			return err
-		}
-		*/
 
 		fInfo, err := entry.Info()
 		if err != nil {
@@ -173,7 +158,6 @@ func buildDefaultDstPath() string {
 	return fmt.Sprintf("%s\\%s", path, ConfigDefaultDstPath)
 }
 
-/*
 func copySymLink(src, dst string) error {
 	link, err := os.Readlink(src)
 	if err != nil {
@@ -181,4 +165,3 @@ func copySymLink(src, dst string) error {
 	}
 	return os.Symlink(link, dst)
 }
-*/
