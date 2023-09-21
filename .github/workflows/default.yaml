@@ -3,13 +3,7 @@
 
 name: Go
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - 'feature/**'
+on: [push]
 
 jobs:
 
