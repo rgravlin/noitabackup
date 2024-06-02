@@ -11,7 +11,6 @@ import (
 	"gioui.org/widget/material"
 	"image/color"
 	"log"
-	"time"
 )
 
 const (
@@ -25,7 +24,6 @@ var (
 	backupButton  = new(widget.Clickable)
 	restoreButton = new(widget.Clickable)
 	phase         = stopped
-	oneTimeLock   = stopped
 )
 
 type (
@@ -36,20 +34,6 @@ type (
 func Run(window *app.Window) error {
 	theme := material.NewTheme()
 	var ops op.Ops
-
-	// start process watcher
-	if oneTimeLock == stopped {
-		go func() {
-			oneTimeLock = started
-			for {
-				// check and log result
-				_ = isNoitaRunning()
-
-				// sleep for 5 seconds and check again
-				time.Sleep(1 * time.Second)
-			}
-		}()
-	}
 
 	for {
 		switch e := window.Event().(type) {
@@ -89,6 +73,7 @@ func Run(window *app.Window) error {
 			}
 
 			cl := clip.Rect{Max: e.Size}.Push(gtx.Ops)
+			// TODO: make this not run every frame!
 			if isNoitaRunning() {
 				paint.ColorOp{Color: color.NRGBA{A: 0xff, R: 0xff}}.Add(gtx.Ops)
 			} else {
