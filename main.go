@@ -1,3 +1,5 @@
+//go:build windows
+
 /*
 Copyright © 2024 Ryan Gravlin ryan.gravlin@gmail.com
 */
