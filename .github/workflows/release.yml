@@ -19,7 +19,7 @@ jobs:
         run: go get .
 
       - name: Build
-        run: go build -trimpath -buildvcs=false -ldflags="-s -w" ./...
+        run: go build -trimpath -buildvcs=false -ldflags="-s -w"
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
