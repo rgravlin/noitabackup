@@ -21,5 +21,9 @@ jobs:
       - name: Build
         run: go build -trimpath -buildvcs=false -ldflags="-s -w" ./...
 
+      - name: List files
+        run: |
+          ls -ls
+
       - name: Test with the Go CLI
         run: go test
