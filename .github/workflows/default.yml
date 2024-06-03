@@ -23,7 +23,7 @@ jobs:
 
       - name: List files
         run: |
-          ls -ls
+          ls
 
       - name: Test with the Go CLI
         run: go test
