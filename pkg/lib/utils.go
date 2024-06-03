@@ -159,12 +159,14 @@ func LaunchExplorer() error {
 
 func LaunchNoita() error {
 	if !isNoitaRunning() {
-		cmd := exec.Command(SteamExe, SteamNoitaFlags)
+		go func() {
+			cmd := exec.Command(SteamExe, SteamNoitaFlags)
 
-		err := cmd.Run()
-		if err != nil {
-			return err
-		}
+			err := cmd.Start()
+			if err != nil {
+				log.Printf("error running steam: %v", err)
+			}
+		}()
 	} else {
 		log.Printf("noita.exe is already running")
 	}
