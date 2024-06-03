@@ -31,6 +31,7 @@ jobs:
         run: go test
 
   release:
+    needs: build
     runs-on: windows-latest
     steps:
       - name: Download a single artifact
