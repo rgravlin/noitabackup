@@ -44,3 +44,4 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: noitabackup.exe
+          token: ${{ secrets.TOKEN }}
