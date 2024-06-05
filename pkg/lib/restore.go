@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 const (
@@ -45,21 +46,9 @@ func processSave00() error {
 	return nil
 }
 
-func restoreSave00(file string) error {
+func restoreSave00(file, dstPath string, backupDirs []time.Time) error {
 	// TODO: implement specified file restore
 	_ = file
-
-	// get backup directories
-	dstPath, err := getDestinationPath()
-	if err != nil {
-		return err
-	}
-
-	// get sorted backup directories
-	backupDirs, err := getBackupDirs(dstPath)
-	if err != nil {
-		return err
-	}
 
 	// create destination directory
 	log.Printf("creating save00 directory")
@@ -103,22 +92,42 @@ func RestoreNoita(file string) error {
 		if phase == stopped {
 			go func() {
 				phase = started
+				// get destination path
+				dstPath, err := getDestinationPath()
+				if err != nil {
+					log.Printf("failed to get destination path: %v", err)
+					return
+				}
 
+				// get sorted backup directories
+				backupDirs, err := getBackupDirs(dstPath)
+				if err != nil {
+					log.Printf("failed to get backup dirs: %v", err)
+					return
+				}
+
+				// protect against no backups
+				if len(backupDirs) == 0 {
+					log.Print("no backup dirs found, cannot restore")
+					return
+				}
+
+				// process save00
+				// 1. delete save00.bak
+				// 2. rename save00 -> save00.bak
 				if err := processSave00(); err != nil {
 					log.Printf("error processing save00: %v", err)
 					phase = stopped
 					return
 				}
 
-				if err := restoreSave00(file); err != nil {
+				// restore specified (default latest) backup to destination
+				if err := restoreSave00(file, dstPath, backupDirs); err != nil {
 					log.Printf("error restoring backup file to save00: %v", err)
 					phase = stopped
 					return
 				}
 
-				// return if successful
-				// log.Printf("successfully launched restore request")
-				// phase = stopped
 				return
 			}()
 		}
