@@ -50,7 +50,7 @@ func Run(window *app.Window) error {
 			}
 
 			for launchButton.Clicked(gtx) {
-				err := LaunchNoita()
+				err := LaunchNoita(true)
 				if err != nil {
 					log.Printf("failed to launch noita: %v", err)
 				}

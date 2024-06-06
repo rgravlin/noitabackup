@@ -16,7 +16,7 @@ var launchCmd = &cobra.Command{
 	Short: "Launch the Noita game from Steam",
 	Long:  `Launches the Noita Steam game`,
 	Run: func(cmd *cobra.Command, args []string) {
-		err := lib.LaunchNoita()
+		err := lib.LaunchNoita(false)
 		if err != nil {
 			log.Printf("failed to launch noita: %v", err)
 		}
