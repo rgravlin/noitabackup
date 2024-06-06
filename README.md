@@ -1,9 +1,15 @@
 # Noita Backup (file) Utility
 
 * Currently, Windows only!
+* Basic GUI launcher features:
+  * Backup and Restore (with auto-launch noita.exe)
+  * Number of backups to keep
+  * Open/Close noita.exe
+  * Explore Backups
 * Supports custom source directory
 * Supports custom destination directory
 * Configured via environmental variables
+* Command line interface
 
 # Example Usage
 

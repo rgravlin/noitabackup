@@ -78,7 +78,8 @@ func restoreSave00(file, dstPath string, backupDirs []time.Time) error {
 	phase = stopped
 
 	// launch noita after successful restore
-	err = LaunchNoita()
+	// TODO: identify if called via cli
+	err = LaunchNoita(true)
 	if err != nil {
 		log.Printf("failed to launch noita: %v", err)
 	}
