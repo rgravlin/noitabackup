@@ -65,7 +65,6 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v2.0.5
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: noitabackup.exe
           tag_name: ${{ steps.tag.outputs.new_tag }}
