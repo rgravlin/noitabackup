@@ -54,6 +54,8 @@ jobs:
 
   release:
     needs: bump-version
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Download a single artifact
