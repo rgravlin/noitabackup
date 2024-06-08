@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    if: github.event_name == 'pull_request_target' && github.event.action == 'closed' && github.event.pull_request.merged == true
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,7 +34,7 @@ jobs:
         run: go test
 
   bump-version:
-    if: github.event_name == 'pull_request_target' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    needs: build
     runs-on: ubuntu-22.04
     permissions:
       contents: write
