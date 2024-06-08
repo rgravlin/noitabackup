@@ -33,7 +33,7 @@ jobs:
       - name: Test with the Go CLI
         run: go test
 
-  bump-version:
+  tag-and-release:
     needs: build
     runs-on: ubuntu-22.04
     permissions:
@@ -52,12 +52,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GIT_API_TAGGING: false
 
-  release:
-    needs: bump-version
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    steps:
       - name: Download a single artifact
         uses: actions/download-artifact@v4
         with:
