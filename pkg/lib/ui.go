@@ -50,10 +50,12 @@ func Run(window *app.Window) error {
 			return e.Err
 		case app.FrameEvent:
 			gtx := app.NewContext(&ops, e)
-			window.Option(
-				app.MaxSize(unit.Dp(640), unit.Dp(105)),
-				app.MinSize(unit.Dp(640), unit.Dp(105)),
-			)
+			// TODO: Forcing window size every frame results in memory leak,
+			//       but sometimes it resizes for no reason
+			// window.Option(
+			// 	app.MaxSize(unit.Dp(640), unit.Dp(105)),
+			// 	app.MinSize(unit.Dp(640), unit.Dp(105)),
+			// )
 			numBackups.Value = ConfigNumBackupsToKeep / 100.00
 
 			if autoLaunch.Update(gtx) {
