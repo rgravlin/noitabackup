@@ -18,7 +18,7 @@ var restoreCmd = &cobra.Command{
 save by deleting save00.bak and renaming save00 to save00.bak.  It then restores the latest save
 file to the save00 directory.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		err := lib.RestoreNoita("")
+		err := lib.RestoreNoita("", false)
 		if err != nil {
 			log.Printf("failed to restore noita backup: %v", err)
 		}

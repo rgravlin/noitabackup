@@ -30,7 +30,7 @@ var (
 	fCounter = 0 // file copy counter
 )
 
-func BackupNoita() {
+func BackupNoita(async bool) {
 	if !isNoitaRunning() {
 		if phase == stopped {
 			phase = started
@@ -114,6 +114,14 @@ func BackupNoita() {
 
 			// reset phase
 			resetPhase()
+
+			// launch noita automatically after successful backup
+			if autoLaunchChecked {
+				err = LaunchNoita(async)
+				if err != nil {
+					log.Printf("failed to launch noita: %v", err)
+				}
+			}
 		} else {
 			log.Printf("backup operation already in progress")
 		}
@@ -179,29 +187,12 @@ func getBackupDirs(backupPath string) ([]time.Time, error) {
 
 func getNumBackups(backupPath string) (int, error) {
 	numBackups := 0
-	if !exists(backupPath) {
-		return numBackups, nil
-	} else {
-		entries, err := os.ReadDir(backupPath)
-		if err != nil {
-			return numBackups, err
-		}
-
-		for _, entry := range entries {
-			srcPath := filepath.Join(backupPath, entry.Name())
-			srcInfo, err := os.Stat(srcPath)
-			if err != nil {
-				return numBackups, err
-			}
-
-			switch srcInfo.Mode() & os.ModeType {
-			case os.ModeDir:
-				numBackups++
-			default:
-			}
-		}
-		return numBackups, nil
+	backupDirs, err := getBackupDirs(backupPath)
+	if err != nil {
+		return numBackups, err
 	}
+
+	return len(backupDirs), nil
 }
 
 type ByDate []time.Time

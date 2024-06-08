@@ -16,7 +16,7 @@ var backupCmd = &cobra.Command{
 	Long: `Backs up the Noita save00 directory to %USERPROFILE%\NoitaBackup or
 a specified destination directory through the environmental variable CONFIG_NOITA_DST_PATH.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		lib.BackupNoita()
+		lib.BackupNoita(false)
 	},
 }
 

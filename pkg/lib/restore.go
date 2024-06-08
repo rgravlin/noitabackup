@@ -46,7 +46,7 @@ func processSave00() error {
 	return nil
 }
 
-func restoreSave00(file, dstPath string, backupDirs []time.Time) error {
+func restoreSave00(file, dstPath string, backupDirs []time.Time, async bool) error {
 	// TODO: implement specified file restore
 	_ = file
 
@@ -78,16 +78,17 @@ func restoreSave00(file, dstPath string, backupDirs []time.Time) error {
 	phase = stopped
 
 	// launch noita after successful restore
-	// TODO: identify if called via cli
-	err = LaunchNoita(true)
-	if err != nil {
-		log.Printf("failed to launch noita: %v", err)
+	if autoLaunchChecked {
+		err = LaunchNoita(async)
+		if err != nil {
+			log.Printf("failed to launch noita: %v", err)
+		}
 	}
 
 	return nil
 }
 
-func RestoreNoita(file string) error {
+func RestoreNoita(file string, async bool) error {
 	// TODO: make this a channel/wait group as the logging is coming in incorrectly
 	if !isNoitaRunning() {
 		if phase == stopped {
@@ -123,7 +124,7 @@ func RestoreNoita(file string) error {
 				}
 
 				// restore specified (default latest) backup to destination
-				if err := restoreSave00(file, dstPath, backupDirs); err != nil {
+				if err := restoreSave00(file, dstPath, backupDirs, async); err != nil {
 					log.Printf("error restoring backup file to save00: %v", err)
 					phase = stopped
 					return
