@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	gioui.org v0.6.0
+	gioui.org/x v0.6.1
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.19.0
 	golang.org/x/sys v0.20.0

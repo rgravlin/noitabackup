@@ -34,8 +34,8 @@ line interface.`,
 			window := new(app.Window)
 			window.Option(
 				app.Title(appName),
-				app.MaxSize(unit.Dp(640), unit.Dp(80)),
-				app.MinSize(unit.Dp(640), unit.Dp(80)),
+				app.MaxSize(unit.Dp(640), unit.Dp(105)),
+				app.MinSize(unit.Dp(640), unit.Dp(105)),
 			)
 			err := lib.Run(window)
 			if err != nil {
