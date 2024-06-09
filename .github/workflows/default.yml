@@ -15,13 +15,15 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21.x'
+          go-version: '1.22.x'
 
       - name: Install dependencies
-        run: go get .
+        run: |
+          go get .
+          go install gioui.org/cmd/gogio@latest
 
       - name: Build
-        run: go build -trimpath -buildvcs=false -ldflags="-s -w"
+        run: gogio -target=windows -ldflags="-s -w" .
 
       - name: Test with the Go CLI
         run: go test
