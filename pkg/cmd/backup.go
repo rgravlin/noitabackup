@@ -8,6 +8,7 @@ import (
 	"github.com/rgravlin/noitabackup/pkg/lib"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"log"
 )
 
 var numBackupsToKeep int
@@ -25,6 +26,10 @@ a specified destination directory through the environmental variable CONFIG_NOIT
 
 func init() {
 	rootCmd.PersistentFlags().IntVar(&numBackupsToKeep, "num-backups", 16, "Define the maximum number of backups to keep")
-	viper.BindPFlag("num-backups", rootCmd.PersistentFlags().Lookup("num-backups"))
+	err := viper.BindPFlag("num-backups", rootCmd.PersistentFlags().Lookup("num-backups"))
+	if err != nil {
+		log.Printf("error binding viper flag: %v", err)
+		return
+	}
 	rootCmd.AddCommand(backupCmd)
 }

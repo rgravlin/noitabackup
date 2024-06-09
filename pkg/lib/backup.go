@@ -69,7 +69,14 @@ func BackupNoita(async bool, maxBackups int) {
 				phase = stopped
 				return
 			} else {
-				log.Printf("number of backups: %d", numBackups)
+				log.Printf("number of backups: %d", numberOfBackups)
+			}
+
+			// protect against invalid maxBackups
+			// cannot breach maximum (100)
+			// cannot breach minimum (1)
+			if maxBackups > ConfigMaxNumBackupsToKeep || maxBackups <= 0 {
+				maxBackups = ConfigMaxNumBackupsToKeep
 			}
 
 			if numberOfBackups >= maxBackups {
