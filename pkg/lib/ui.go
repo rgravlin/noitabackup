@@ -10,6 +10,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/spf13/viper"
 	"image/color"
 	"log"
 )
@@ -56,7 +57,7 @@ func Run(window *app.Window) error {
 			// 	app.MaxSize(unit.Dp(640), unit.Dp(105)),
 			// 	app.MinSize(unit.Dp(640), unit.Dp(105)),
 			// )
-			numBackups.Value = ConfigNumBackupsToKeep / 100.00
+			numBackups.Value = float32(viper.GetInt("num-backups")) / 100.00
 
 			if autoLaunch.Update(gtx) {
 				autoLaunchChecked = !autoLaunchChecked
@@ -90,7 +91,7 @@ func Run(window *app.Window) error {
 			}
 
 			for backupButton.Clicked(gtx) {
-				BackupNoita(true)
+				BackupNoita(true, viper.GetInt("num-backups"))
 			}
 
 			cl := clip.Rect{Max: e.Size}.Push(gtx.Ops)

@@ -11,18 +11,18 @@ import (
 )
 
 const (
-	TimeFormat               = "2006-01-02-15-04-05"
-	ConfigDefaultAppDataPath = "..\\LocalLow\\Nolla_Games_Noita"
-	ConfigDefaultSavePath    = "save00"
-	ConfigDefaultDstPath     = "NoitaBackups"
-	ConfigUserProfile        = "USERPROFILE"
-	ConfigAppData            = "APPDATA"
-	ConfigOverrideSrcPath    = "CONFIG_NOITA_SRC_PATH"
-	ConfigOverrideDstPath    = "CONFIG_NOITA_DST_PATH"
-	ConfigNumBackupsToKeep   = 16
-	SteamExe                 = "C:\\Program Files (x86)\\Steam\\steam.exe"
-	SteamNoitaFlags          = "steam://rungameid/881100"
-	ExplorerExe              = "explorer"
+	TimeFormat                = "2006-01-02-15-04-05"
+	ConfigDefaultAppDataPath  = "..\\LocalLow\\Nolla_Games_Noita"
+	ConfigDefaultSavePath     = "save00"
+	ConfigDefaultDstPath      = "NoitaBackups"
+	ConfigUserProfile         = "USERPROFILE"
+	ConfigAppData             = "APPDATA"
+	ConfigOverrideSrcPath     = "CONFIG_NOITA_SRC_PATH"
+	ConfigOverrideDstPath     = "CONFIG_NOITA_DST_PATH"
+	ConfigMaxNumBackupsToKeep = 100
+	SteamExe                  = "C:\\Program Files (x86)\\Steam\\steam.exe"
+	SteamNoitaFlags           = "steam://rungameid/881100"
+	ExplorerExe               = "explorer"
 )
 
 var (
@@ -30,7 +30,7 @@ var (
 	fCounter = 0 // file copy counter
 )
 
-func BackupNoita(async bool) {
+func BackupNoita(async bool, maxBackups int) {
 	if !isNoitaRunning() {
 		if phase == stopped {
 			phase = started
@@ -63,7 +63,7 @@ func BackupNoita(async bool) {
 			log.Printf("source: %s\n", srcPath)
 			log.Printf("destination: %s\n", dstPath)
 
-			numBackups, err := getNumBackups(backupPath)
+			numberOfBackups, err := getNumBackups(backupPath)
 			if err != nil {
 				log.Printf("error getting backups: %v", err)
 				phase = stopped
@@ -72,7 +72,7 @@ func BackupNoita(async bool) {
 				log.Printf("number of backups: %d", numBackups)
 			}
 
-			if numBackups >= ConfigNumBackupsToKeep {
+			if numberOfBackups >= maxBackups {
 				log.Printf("maximum backup threshold reached")
 
 				// get and sort backup directories
@@ -85,7 +85,7 @@ func BackupNoita(async bool) {
 				}
 
 				// clean backup directories - 1 to make room for this backup
-				if err := cleanBackups(sortedBackupDirs, backupPath, ConfigNumBackupsToKeep); err != nil {
+				if err := cleanBackups(sortedBackupDirs, backupPath, numberOfBackups); err != nil {
 					log.Printf("failure deleting backups: %v", err)
 					phase = stopped
 					return
