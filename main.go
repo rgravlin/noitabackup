@@ -12,3 +12,7 @@ import (
 func main() {
 	cmd.Execute()
 }
+
+// TODO: Implement the following features:
+//  * Viper configuration for: source, destination, Steam path
+//  * Feedback for UI async backup/restore: click -> animated processing -> success/fail
