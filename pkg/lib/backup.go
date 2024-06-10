@@ -30,6 +30,21 @@ var (
 	fCounter = 0 // file copy counter
 )
 
+// BackupNoita performs the backup operation for the Noita game.
+// It checks if Noita is running and if the backup operation is already in progress.
+// If Noita is not running and the backup operation is not already in progress, it proceeds with the backup process.
+// The function builds the timestamp, source path, and destination path.
+// It then retrieves the number of existing backups and checks if it exceeds the maximum backup threshold.
+// If the number of backups exceeds the maximum threshold, it sorts the backup directories from oldest to newest.
+// It then cleans up the oldest backup directories to make room for the new backup.
+// After that, it creates the destination path and copies the source directory contents to the destination.
+// Lastly, it logs the backup statistics and resets the phase.
+// If the auto-launch feature is enabled, it launches Noita after a successful backup.
+//
+// Parameters:
+//   - async (bool): Determines whether to launch Noita asynchronously after the backup (true) or synchronously (false).
+//   - maxBackups (int): The maximum number of backups to keep. If the number of backups exceeds this limit,
+//     the oldest backups will be deleted to make room for new backups.
 func BackupNoita(async bool, maxBackups int) {
 	if !isNoitaRunning() {
 		if phase == stopped {
@@ -137,12 +152,24 @@ func BackupNoita(async bool, maxBackups int) {
 	}
 }
 
+// resetPhase resets the phase, dCounter, and fCounter variables to their initial values.
 func resetPhase() {
 	phase = stopped
 	dCounter = 0
 	fCounter = 0
 }
 
+// cleanBackups removes the oldest backup directories to make room for new backups.
+// It receives a list of backup directories, the backup path, and the number of backups to keep.
+// It calculates the number of directories to remove based on the difference between the total number of backups and the number of backups to keep.
+// Then it iterates through the backup directories from oldest to newest and removes the oldest directories from the file system.
+// The function returns an error if any deletion operation fails.
+//
+// Parameters:
+//   - backupDirs ([]time.Time): A list of backup directories represented by timestamps.
+//   - backupPath (string): The path to the backup directory.
+//   - numToKeep (int): The maximum number of backups to keep. If the number of backups exceeds this limit,
+//     the oldest backups will be deleted to make room for new backups.
 func cleanBackups(backupDirs []time.Time, backupPath string, numToKeep int) error {
 	totalBackups := len(backupDirs)
 	totalToRemove := totalBackups - numToKeep
@@ -159,6 +186,20 @@ func cleanBackups(backupDirs []time.Time, backupPath string, numToKeep int) erro
 	return nil
 }
 
+// getBackupDirs retrieves the list of backup directories in the specified backupPath.
+// If backupPath does not exist, an empty slice is returned.
+// If an error occurs while reading the backupPath directory, the error is returned.
+// For each directory entry in backupPath, the function checks if it is a directory.
+// If it is a directory, it parses the directory name as a time value using the TimeFormat constant.
+// The parsed time value is appended to the backupDirs slice.
+// Finally, the backupDirs slice is sorted in ascending order based on the time values and returned.
+//
+// Parameters:
+// - backupPath (string): The path to the backup directory.
+//
+// Returns:
+// - ([]time.Time): The list of backup directories sorted by ascending time values.
+// - (error): An error that occurred during the process, or nil if successful.
 func getBackupDirs(backupPath string) ([]time.Time, error) {
 	var backupDirs []time.Time
 	if !exists(backupPath) {
@@ -192,6 +233,16 @@ func getBackupDirs(backupPath string) ([]time.Time, error) {
 	}
 }
 
+// getNumBackups retrieves the number of existing backups in the specified backupPath.
+// It calls the getBackupDirs function to retrieve the list of backup directories in the backupPath.
+// The number of backup directories is equal to the number of existing backups.
+//
+// Parameters:
+// - backupPath (string): The path to the backup directory.
+//
+// Returns:
+// - (int): The number of existing backups.
+// - (error): An error that occurred during the process, or nil if successful.
 func getNumBackups(backupPath string) (int, error) {
 	numBackups := 0
 	backupDirs, err := getBackupDirs(backupPath)
