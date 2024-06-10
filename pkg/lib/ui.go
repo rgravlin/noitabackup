@@ -41,6 +41,8 @@ type (
 	C = layout.Context
 )
 
+// Run handles all the events and rendering for the application window.
+// It takes a *app.Window as a parameter and returns an error if any.
 func Run(window *app.Window) error {
 	theme := material.NewTheme()
 	var ops op.Ops

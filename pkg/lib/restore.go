@@ -12,6 +12,8 @@ const (
 	backupSuffix = ".bak"
 )
 
+// deleteSave00Bak deletes the save00.bak folder by removing the directory at the source path with the backup suffix.
+// It returns an error if the operation fails.
 func deleteSave00Bak() error {
 	srcPath := buildDefaultSrcPath()
 	log.Printf("deleting save00.bak folder")
@@ -23,6 +25,14 @@ func deleteSave00Bak() error {
 	return nil
 }
 
+// processSave00 renames the save00 folder to save00.bak by performing the following steps:
+// 1. Get the source path using getSourcePath.
+// 2. If the source path does not exist, return nil.
+// 3. Delete the save00.bak folder by calling deleteSave00Bak.
+// 4. If an error occurs during deleteSave00Bak, return the error.
+// 5. Rename the save00 folder to save00.bak using os.Rename, using the source path and backupSuffix.
+// 6. If an error occurs during the rename operation, return the error.
+// 7. Return nil to indicate successful completion.
 func processSave00() error {
 	srcPath, err := getSourcePath()
 	if err != nil {
@@ -46,6 +56,12 @@ func processSave00() error {
 	return nil
 }
 
+// restoreSave00 restores the save00 directory by performing the following steps:
+// 1. Creates the save00 directory at the source path.
+// 2. Recursively copies the latest backup directory to the save00 directory.
+// 3. Updates the phase variable to stopped.
+// 4. Launches Noita if autoLaunchChecked is true.
+// It returns an error if any of the operations fail.
 func restoreSave00(file, dstPath string, backupDirs []time.Time, async bool) error {
 	// TODO: implement specified file restore
 	_ = file
@@ -88,6 +104,25 @@ func restoreSave00(file, dstPath string, backupDirs []time.Time, async bool) err
 	return nil
 }
 
+// RestoreNoita restores the save00 directory by performing the following steps:
+//  1. Checks if Noita is running using isNoitaRunning.
+//  2. If Noita is not running, it checks the phase variable and starts the restore process using a goroutine:
+//     a. Sets the phase variable to started.
+//     b. Gets the destination path using getDestinationPath.
+//     c. Gets the sorted backup directories using getBackupDirs.
+//     d. Checks if any backup directories exist and returns if none are found.
+//     e. Calls processSave00 to rename the save00 folder to save00.bak.
+//     f. Calls restoreSave00 to restore the specified backup or the latest backup to the save00 directory.
+//     - Calls getSourcePath to get the source path.
+//     - Deletes the save00.bak folder using deleteSave00Bak.
+//     - Renames the save00 folder to save00.bak.
+//     - Creates the save00 directory at the source path.
+//     - Copies the latest backup directory to the save00 directory.
+//     - Sets the phase variable to stopped.
+//     - Launches Noita if autoLaunchChecked is true.
+//  3. If Noita is running, it returns an error and logs a message.
+//
+// It returns an error if any of the operations fail.
 func RestoreNoita(file string, async bool) error {
 	// TODO: make this a channel/wait group as the logging is coming in incorrectly
 	if !isNoitaRunning() {
