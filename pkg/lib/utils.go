@@ -228,7 +228,7 @@ func buildDefaultDstPath() string {
 // The command is executed by calling cmd.Run(). Any error encountered is discarded.
 // Finally, nil is returned to indicate that the operation completed successfully.
 func LaunchExplorer() error {
-	dstPath := viper.GetString("dst")
+	dstPath := viper.GetString("destination-path")
 
 	// TODO: find out why explorer always returns an error code
 	cmd := exec.Command(ExplorerExe, dstPath)

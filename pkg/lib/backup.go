@@ -49,10 +49,10 @@ func BackupNoita(async bool, maxBackups int) {
 				datePath := t.Format(TimeFormat)
 
 				// build source path
-				srcPath := viper.GetString("src")
+				srcPath := viper.GetString("source-path")
 
 				// build destination path
-				dstPath := viper.GetString("dst")
+				dstPath := viper.GetString("destination-path")
 
 				// mutate destination with timestamp
 				backupPath := dstPath
