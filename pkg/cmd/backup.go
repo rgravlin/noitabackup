@@ -25,8 +25,8 @@ a specified destination directory through the environmental variable CONFIG_NOIT
 }
 
 func init() {
-	backupCmd.PersistentFlags().IntVar(&numBackupsToKeep, "num-backups", 16, "Define the maximum number of backups to keep")
-	err := viper.BindPFlag("num-backups", backupCmd.PersistentFlags().Lookup("num-backups"))
+	rootCmd.PersistentFlags().IntVar(&numBackupsToKeep, "num-backups", 16, "Define the maximum number of backups to keep")
+	err := viper.BindPFlag("num-backups", rootCmd.PersistentFlags().Lookup("num-backups"))
 	if err != nil {
 		log.Printf("error binding viper flag: %v", err)
 		return
