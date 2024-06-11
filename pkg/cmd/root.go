@@ -32,16 +32,16 @@ task of stopping, backing up, restoring, and restarting Noita.  Includes both a 
 line interface.`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if numBackupsToKeep > ConfigMaxNumBackupsToKeep || numBackupsToKeep <= 0 {
-			log.Fatal("Number of backups to keep must be between 1 and 100")
+			return fmt.Errorf("number of backups to keep must be between 1 and 100")
 		}
 
 		if path, err := lib.GetSourcePath(viper.GetString("source-path")); err != nil {
-			log.Fatalf("error getting source path: %v", err)
+			return fmt.Errorf("error getting source path: %v", err)
 		} else {
 			viper.Set("source-path", path)
 		}
 		if path, err := lib.GetDestinationPath(viper.GetString("destination-path")); err != nil {
-			log.Fatalf("error getting destination path: %v", err)
+			return fmt.Errorf("error getting destination path: %v", err)
 		} else {
 			viper.Set("destination-path", path)
 		}

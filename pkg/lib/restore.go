@@ -34,7 +34,7 @@ func deleteSave00Bak() error {
 // 6. If an error occurs during the rename operation, return the error.
 // 7. Return nil to indicate successful completion.
 func processSave00() error {
-	srcPath := viper.GetString("src")
+	srcPath := viper.GetString("source-path")
 
 	err := deleteSave00Bak()
 	if err != nil {
@@ -62,7 +62,7 @@ func restoreSave00(file, dstPath string, backupDirs []time.Time, async bool) err
 
 	// create destination directory
 	log.Printf("creating save00 directory")
-	srcPath := viper.GetString("src")
+	srcPath := viper.GetString("source-path")
 
 	// create directory
 	err := os.MkdirAll(srcPath, os.ModePerm)
@@ -117,7 +117,7 @@ func RestoreNoita(file string, async bool) error {
 			go func() {
 				phase = started
 				// get destination path
-				dstPath := viper.GetString("dst")
+				dstPath := viper.GetString("destination-path")
 
 				// get sorted backup directories
 				backupDirs, err := getBackupDirs(dstPath)
