@@ -17,10 +17,11 @@ import (
 )
 
 const (
-	appName = "Noita Backup and Restore"
+	appName                   = "Noita Backup and Restore"
+	ConfigMaxNumBackupsToKeep = 100
 )
 
-var cfgFile, src, dst string
+var cfgFile, sourcePath, destinationPath string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -29,6 +30,24 @@ var rootCmd = &cobra.Command{
 	Long: `A configurable Noita backup and restore manager and launcher.  Automates the tedious
 task of stopping, backing up, restoring, and restarting Noita.  Includes both a GUI and command
 line interface.`,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		if numBackupsToKeep > ConfigMaxNumBackupsToKeep || numBackupsToKeep <= 0 {
+			log.Fatal("Number of backups to keep must be between 1 and 100")
+		}
+
+		if path, err := lib.GetSourcePath(viper.GetString("source-path")); err != nil {
+			log.Fatalf("error getting source path: %v", err)
+		} else {
+			viper.Set("source-path", path)
+		}
+		if path, err := lib.GetDestinationPath(viper.GetString("destination-path")); err != nil {
+			log.Fatalf("error getting destination path: %v", err)
+		} else {
+			viper.Set("destination-path", path)
+		}
+
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		go func() {
 			window := new(app.Window)
@@ -63,27 +82,16 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.noitabackup.yaml)")
-	rootCmd.PersistentFlags().StringVar(&src, "src", lib.GetDefaultSourcePath(), "Define the source Noita save00 path")
-	rootCmd.PersistentFlags().StringVar(&dst, "dst", lib.GetDefaultDestinationPath(), "Define the destination backup path")
+	rootCmd.PersistentFlags().StringVar(&sourcePath, "source-path", lib.GetDefaultSourcePath(), "Define the source Noita save00 path")
+	rootCmd.PersistentFlags().StringVar(&destinationPath, "destination-path", lib.GetDefaultDestinationPath(), "Define the destination backup path")
 
-	var (
-		path string
-		err  error
-	)
-	err = viper.BindPFlag("src", rootCmd.PersistentFlags().Lookup("src"))
+	err := viper.BindPFlag("source-path", rootCmd.PersistentFlags().Lookup("source-path"))
 	if err != nil {
 		log.Printf("error binding viper flag: %v", err)
 	}
-	err = viper.BindPFlag("dst", rootCmd.PersistentFlags().Lookup("dst"))
+	err = viper.BindPFlag("destination-path", rootCmd.PersistentFlags().Lookup("destination-path"))
 	if err != nil {
 		log.Printf("error binding viper flag: %v", err)
-	}
-
-	if path, err = lib.GetSourcePath(viper.GetString("src")); err != nil {
-		viper.Set("src", path)
-	}
-	if path, err = lib.GetDestinationPath(viper.GetString("dst")); err != nil {
-		viper.Set("dst", path)
 	}
 }
 
