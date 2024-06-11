@@ -2,9 +2,9 @@ package lib
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"log"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -26,7 +26,7 @@ func deleteSave00Bak() error {
 }
 
 // processSave00 renames the save00 folder to save00.bak by performing the following steps:
-// 1. Get the source path using getSourcePath.
+// 1. Get the source path using GetSourcePath.
 // 2. If the source path does not exist, return nil.
 // 3. Delete the save00.bak folder by calling deleteSave00Bak.
 // 4. If an error occurs during deleteSave00Bak, return the error.
@@ -34,15 +34,9 @@ func deleteSave00Bak() error {
 // 6. If an error occurs during the rename operation, return the error.
 // 7. Return nil to indicate successful completion.
 func processSave00() error {
-	srcPath, err := getSourcePath()
-	if err != nil {
-		if strings.Contains(err.Error(), "source path does not exist") {
-			return nil
-		}
-		return err
-	}
+	srcPath := viper.GetString("src")
 
-	err = deleteSave00Bak()
+	err := deleteSave00Bak()
 	if err != nil {
 		return err
 	}
@@ -68,17 +62,10 @@ func restoreSave00(file, dstPath string, backupDirs []time.Time, async bool) err
 
 	// create destination directory
 	log.Printf("creating save00 directory")
-	srcPath, err := getSourcePath()
-	if err != nil {
-		if strings.Contains(err.Error(), "source path does not exist") {
-			log.Printf("save00 directory does not exist")
-		} else {
-			return err
-		}
-	}
+	srcPath := viper.GetString("src")
 
 	// create directory
-	err = os.MkdirAll(srcPath, os.ModePerm)
+	err := os.MkdirAll(srcPath, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -113,7 +100,7 @@ func restoreSave00(file, dstPath string, backupDirs []time.Time, async bool) err
 //     d. Checks if any backup directories exist and returns if none are found.
 //     e. Calls processSave00 to rename the save00 folder to save00.bak.
 //     f. Calls restoreSave00 to restore the specified backup or the latest backup to the save00 directory.
-//     - Calls getSourcePath to get the source path.
+//     - Calls GetSourcePath to get the source path.
 //     - Deletes the save00.bak folder using deleteSave00Bak.
 //     - Renames the save00 folder to save00.bak.
 //     - Creates the save00 directory at the source path.
@@ -130,11 +117,7 @@ func RestoreNoita(file string, async bool) error {
 			go func() {
 				phase = started
 				// get destination path
-				dstPath, err := getDestinationPath()
-				if err != nil {
-					log.Printf("failed to get destination path: %v", err)
-					return
-				}
+				dstPath := viper.GetString("dst")
 
 				// get sorted backup directories
 				backupDirs, err := getBackupDirs(dstPath)

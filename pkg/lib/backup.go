@@ -2,6 +2,7 @@ package lib
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"log"
 	"os"
 	"path/filepath"
@@ -12,13 +13,6 @@ import (
 
 const (
 	TimeFormat                = "2006-01-02-15-04-05"
-	ConfigDefaultAppDataPath  = "..\\LocalLow\\Nolla_Games_Noita"
-	ConfigDefaultSavePath     = "save00"
-	ConfigDefaultDstPath      = "NoitaBackups"
-	ConfigUserProfile         = "USERPROFILE"
-	ConfigAppData             = "APPDATA"
-	ConfigOverrideSrcPath     = "CONFIG_NOITA_SRC_PATH"
-	ConfigOverrideDstPath     = "CONFIG_NOITA_DST_PATH"
 	ConfigMaxNumBackupsToKeep = 100
 	SteamExe                  = "C:\\Program Files (x86)\\Steam\\steam.exe"
 	SteamNoitaFlags           = "steam://rungameid/881100"
@@ -55,20 +49,10 @@ func BackupNoita(async bool, maxBackups int) {
 				datePath := t.Format(TimeFormat)
 
 				// build source path
-				srcPath, err := getSourcePath()
-				if err != nil {
-					log.Printf("cannot get source path: %v", err)
-					phase = stopped
-					return
-				}
+				srcPath := viper.GetString("src")
 
 				// build destination path
-				dstPath, err := getDestinationPath()
-				if err != nil {
-					log.Printf("cannot get destination path: %v", err)
-					phase = stopped
-					return
-				}
+				dstPath := viper.GetString("dst")
 
 				// mutate destination with timestamp
 				backupPath := dstPath

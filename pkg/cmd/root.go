@@ -20,7 +20,7 @@ const (
 	appName = "Noita Backup and Restore"
 )
 
-var cfgFile string
+var cfgFile, src, dst string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -63,10 +63,28 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.noitabackup.yaml)")
+	rootCmd.PersistentFlags().StringVar(&src, "src", lib.GetDefaultSourcePath(), "Define the source Noita save00 path")
+	rootCmd.PersistentFlags().StringVar(&dst, "dst", lib.GetDefaultDestinationPath(), "Define the destination backup path")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	var (
+		path string
+		err  error
+	)
+	err = viper.BindPFlag("src", rootCmd.PersistentFlags().Lookup("src"))
+	if err != nil {
+		log.Printf("error binding viper flag: %v", err)
+	}
+	err = viper.BindPFlag("dst", rootCmd.PersistentFlags().Lookup("dst"))
+	if err != nil {
+		log.Printf("error binding viper flag: %v", err)
+	}
+
+	if path, err = lib.GetSourcePath(viper.GetString("src")); err != nil {
+		viper.Set("src", path)
+	}
+	if path, err = lib.GetDestinationPath(viper.GetString("dst")); err != nil {
+		viper.Set("dst", path)
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.

@@ -14,5 +14,5 @@ func main() {
 }
 
 // TODO: Implement the following features:
-//  * Viper configuration for: source, destination, Steam path
+//  * Viper configuration for: Steam path
 //  * Feedback for UI async backup/restore: click -> animated processing -> success/fail

@@ -2,6 +2,7 @@ package lib
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"io"
 	"log"
 	"os"
@@ -9,14 +10,32 @@ import (
 	"path/filepath"
 )
 
-// getSourcePath retrieves the source path for the backup operation by checking for a source path override in the
+const (
+	ConfigDefaultAppDataPath = "..\\LocalLow\\Nolla_Games_Noita"
+	ConfigDefaultSavePath    = "save00"
+	ConfigDefaultDstPath     = "NoitaBackups"
+	ConfigUserProfile        = "USERPROFILE"
+	ConfigAppData            = "APPDATA"
+	ConfigOverrideSrcPath    = "CONFIG_NOITA_SRC_PATH"
+	ConfigOverrideDstPath    = "CONFIG_NOITA_DST_PATH"
+)
+
+func GetDefaultSourcePath() string {
+	return buildDefaultSrcPath()
+}
+
+func GetDefaultDestinationPath() string {
+	return buildDefaultDstPath()
+}
+
+// GetSourcePath retrieves the source path for the backup operation by checking for a source path override in the
 // environment variables. If a source path override is not found, it builds the default source path. It then validates
 // if the source path exists and returns it along with any error encountered.
-func getSourcePath() (string, error) {
+func GetSourcePath(path string) (string, error) {
 	// check for source path override
 	srcPath := os.Getenv(ConfigOverrideSrcPath)
 	if srcPath == "" {
-		srcPath = buildDefaultSrcPath()
+		srcPath = path
 	}
 
 	// validate source path exists
@@ -27,14 +46,14 @@ func getSourcePath() (string, error) {
 	return srcPath, nil
 }
 
-// getDestinationPath retrieves the destination path for the backup operation by checking for a destination path override in the
+// GetDestinationPath retrieves the destination path for the backup operation by checking for a destination path override in the
 // environment variables. If a destination path override is not found, it builds the default destination path. It then validates
 // if the destination path exists and returns it along with any error encountered.
-func getDestinationPath() (string, error) {
+func GetDestinationPath(path string) (string, error) {
 	// check for destination path override
 	dstPath := os.Getenv(ConfigOverrideDstPath)
 	if dstPath == "" {
-		dstPath = buildDefaultDstPath()
+		dstPath = path
 	}
 
 	// validate destination path exists
@@ -209,10 +228,7 @@ func buildDefaultDstPath() string {
 // The command is executed by calling cmd.Run(). Any error encountered is discarded.
 // Finally, nil is returned to indicate that the operation completed successfully.
 func LaunchExplorer() error {
-	dstPath, err := getDestinationPath()
-	if err != nil {
-		return err
-	}
+	dstPath := viper.GetString("dst")
 
 	// TODO: find out why explorer always returns an error code
 	cmd := exec.Command(ExplorerExe, dstPath)
