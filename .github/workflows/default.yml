@@ -19,7 +19,7 @@ jobs:
 
       - name: Filter for Golang project files
         uses: dorny/paths-filter@v3
-        id: changes
+        id: go-changes
         with:
           filters: |
             src:
@@ -30,21 +30,21 @@ jobs:
               - 'pkg/**'
 
       - name: Setup Go
-        if: steps.changes.outputs.src == 'true'
+        if: steps.go-changes.outputs.src == 'true'
         uses: actions/setup-go@v5
         with:
           go-version: '1.22.x'
 
       - name: Install dependencies
-        if: steps.changes.outputs.src == 'true'
+        if: steps.go-changes.outputs.src == 'true'
         run: |
           go get .
           go install gioui.org/cmd/gogio@latest
 
       - name: Build
-        if: steps.changes.outputs.src == 'true'
+        if: steps.go-changes.outputs.src == 'true'
         run: gogio -target=windows -ldflags="-s -w" .
 
       - name: Test with the Go CLI
-        if: steps.changes.outputs.src == 'true'
+        if: steps.go-changes.outputs.src == 'true'
         run: go test

@@ -59,7 +59,7 @@ func Run(window *app.Window) error {
 			// 	app.MaxSize(unit.Dp(640), unit.Dp(105)),
 			// 	app.MinSize(unit.Dp(640), unit.Dp(105)),
 			// )
-			numBackups.Value = float32(viper.GetInt("num-backups")) / 100.00
+			numBackups.Value = float32(viper.GetInt("num-backups")) / ConfigMaxNumBackupsToKeep
 
 			if autoLaunch.Update(gtx) {
 				autoLaunchChecked = !autoLaunchChecked
@@ -127,18 +127,38 @@ func Run(window *app.Window) error {
 				},
 				func(gtx C) D {
 					in := layout.UniformInset(unit.Dp(8))
+					var loadFunc layout.FlexChild
+					switch phase {
+					case stopped:
+						loadFunc = layout.Rigid(layout.Spacer{Width: 56}.Layout)
+					case started:
+						loadFunc = layout.Rigid(func(gtx C) D {
+							return layout.Inset{
+								Top:    unit.Dp(4),
+								Bottom: unit.Dp(4),
+								Left:   unit.Dp(16),
+								Right:  unit.Dp(16),
+							}.Layout(gtx, func(gtx C) D {
+								gtx.Constraints.Max.X = gtx.Dp(unit.Dp(24))
+								gtx.Constraints.Max.Y = gtx.Dp(unit.Dp(24))
+								return material.Loader(theme).Layout(gtx)
+							})
+						})
+					default:
+						loadFunc = layout.Rigid(layout.Spacer{Width: 56}.Layout)
+					}
 					return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
 						layout.Rigid(func(gtx C) D {
 							return in.Layout(gtx, material.CheckBox(theme, autoLaunch, "Auto Launch").Layout)
 						}),
-						layout.Rigid(layout.Spacer{Width: 50}.Layout),
+						loadFunc,
 						layout.Rigid(func(gtx C) D {
 							return in.Layout(gtx, material.Label(theme, theme.TextSize, "Number backups to keep").Layout)
 						}),
 						layout.Flexed(1, material.Slider(theme, numBackups).Layout),
 						layout.Rigid(func(gtx C) D {
 							return layout.UniformInset(unit.Dp(8)).Layout(gtx,
-								material.Body1(theme, fmt.Sprintf("%.0f", numBackups.Value*100)).Layout,
+								material.Body1(theme, fmt.Sprintf("%.0f", numBackups.Value*ConfigMaxNumBackupsToKeep)).Layout,
 							)
 						}),
 					)

@@ -123,12 +123,14 @@ func RestoreNoita(file string, async bool) error {
 				backupDirs, err := getBackupDirs(dstPath)
 				if err != nil {
 					log.Printf("failed to get backup dirs: %v", err)
+					phase = stopped
 					return
 				}
 
 				// protect against no backups
 				if len(backupDirs) == 0 {
 					log.Print("no backup dirs found, cannot restore")
+					phase = stopped
 					return
 				}
 
