@@ -84,14 +84,18 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.noitabackup.yaml)")
 	rootCmd.PersistentFlags().StringVar(&sourcePath, "source-path", lib.GetDefaultSourcePath(), "Define the source Noita save00 path")
 	rootCmd.PersistentFlags().StringVar(&destinationPath, "destination-path", lib.GetDefaultDestinationPath(), "Define the destination backup path")
+	rootCmd.PersistentFlags().IntVar(&numBackupsToKeep, "num-backups", 16, "Define the maximum number of backups to keep")
 
-	err := viper.BindPFlag("source-path", rootCmd.PersistentFlags().Lookup("source-path"))
-	if err != nil {
-		log.Printf("error binding viper flag: %v", err)
+	commands := []string{
+		"source-path",
+		"destination-path",
+		"num-backups",
 	}
-	err = viper.BindPFlag("destination-path", rootCmd.PersistentFlags().Lookup("destination-path"))
-	if err != nil {
-		log.Printf("error binding viper flag: %v", err)
+
+	for _, cmd := range commands {
+		if err := viper.BindPFlag(cmd, rootCmd.PersistentFlags().Lookup(cmd)); err != nil {
+			log.Printf("error binding viper flag: %v", err)
+		}
 	}
 }
 
