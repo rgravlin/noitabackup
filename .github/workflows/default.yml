@@ -3,27 +3,48 @@ on:
   push:
     branches-ignore:
       - main
-    paths-ignore:
-      - '.github/**'
 
 jobs:
+  lint-markdown:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate Markdown
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Filter for Golang project files
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            src:
+              - 'appicon.png'
+              - 'go.mod'
+              - 'go.sum'
+              - 'main.go'
+              - 'pkg/**'
 
       - name: Setup Go
+        if: steps.changes.outputs.src == 'true'
         uses: actions/setup-go@v5
         with:
           go-version: '1.22.x'
 
       - name: Install dependencies
+        if: steps.changes.outputs.src == 'true'
         run: |
           go get .
           go install gioui.org/cmd/gogio@latest
 
       - name: Build
+        if: steps.changes.outputs.src == 'true'
         run: gogio -target=windows -ldflags="-s -w" .
 
       - name: Test with the Go CLI
+        if: steps.changes.outputs.src == 'true'
         run: go test
