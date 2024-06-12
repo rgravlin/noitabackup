@@ -13,7 +13,7 @@ import (
 
 const (
 	TimeFormat                = "2006-01-02-15-04-05"
-	ConfigMaxNumBackupsToKeep = 100
+	ConfigMaxNumBackupsToKeep = 64.00
 	SteamExe                  = "C:\\Program Files (x86)\\Steam\\steam.exe"
 	SteamNoitaFlags           = "steam://rungameid/881100"
 	ExplorerExe               = "explorer"
@@ -73,7 +73,7 @@ func BackupNoita(async bool, maxBackups int) {
 				}
 
 				// protect against invalid maxBackups
-				// cannot breach maximum (100)
+				// cannot breach maximum (64)
 				// cannot breach minimum (1)
 				if maxBackups > ConfigMaxNumBackupsToKeep || maxBackups <= 0 {
 					maxBackups = ConfigMaxNumBackupsToKeep

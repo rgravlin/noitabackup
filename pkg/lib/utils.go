@@ -29,7 +29,7 @@ func GetDefaultDestinationPath() string {
 }
 
 // GetSourcePath retrieves the source path for the backup operation by checking for a source path override in the
-// environment variables. If a source path override is not found, it builds the default source path. It then validates
+// environment variables. If a source path override is not found, it uses the provided path. It then validates
 // if the source path exists and returns it along with any error encountered.
 func GetSourcePath(path string) (string, error) {
 	// check for source path override
@@ -47,7 +47,7 @@ func GetSourcePath(path string) (string, error) {
 }
 
 // GetDestinationPath retrieves the destination path for the backup operation by checking for a destination path override in the
-// environment variables. If a destination path override is not found, it builds the default destination path. It then validates
+// environment variables. If a destination path override is not found, it uses the provided path. It then validates
 // if the destination path exists and returns it along with any error encountered.
 func GetDestinationPath(path string) (string, error) {
 	// check for destination path override

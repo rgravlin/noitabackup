@@ -18,7 +18,7 @@ import (
 
 const (
 	appName                   = "Noita Backup and Restore"
-	ConfigMaxNumBackupsToKeep = 100
+	ConfigMaxNumBackupsToKeep = 64
 )
 
 var cfgFile, sourcePath, destinationPath string
