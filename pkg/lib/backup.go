@@ -42,100 +42,107 @@ var (
 func BackupNoita(async bool, maxBackups int) {
 	if !isNoitaRunning() {
 		if phase == stopped {
-			go func() {
-				phase = started
-				// build timestamp
-				t := time.Now()
-				datePath := t.Format(TimeFormat)
-
-				// build source path
-				srcPath := viper.GetString("source-path")
-
-				// build destination path
-				dstPath := viper.GetString("destination-path")
-
-				// mutate destination with timestamp
-				backupPath := dstPath
-				dstPath = fmt.Sprintf("%s\\%s", dstPath, datePath)
-
-				// report start
-				log.Printf("timestamp: %s\n", datePath)
-				log.Printf("source: %s\n", srcPath)
-				log.Printf("destination: %s\n", dstPath)
-
-				numberOfBackups, err := getNumBackups(backupPath)
-				if err != nil {
-					log.Printf("error getting backups: %v", err)
-					phase = stopped
-					return
-				} else {
-					log.Printf("number of backups: %d", numberOfBackups)
-				}
-
-				// protect against invalid maxBackups
-				// cannot breach maximum (64)
-				// cannot breach minimum (1)
-				if maxBackups > ConfigMaxNumBackupsToKeep || maxBackups <= 0 {
-					maxBackups = ConfigMaxNumBackupsToKeep
-				}
-
-				if numberOfBackups >= maxBackups {
-					log.Printf("maximum backup threshold reached")
-
-					// get and sort backup directories
-					// oldest are first in the sorted slice
-					sortedBackupDirs, err := getBackupDirs(backupPath)
-					if err != nil {
-						log.Printf("error getting backups: %v", err)
-						phase = stopped
-						return
-					}
-
-					// clean backup directories - 1 to make room for this backup
-					if err := cleanBackups(sortedBackupDirs, backupPath, maxBackups-1); err != nil {
-						log.Printf("failure deleting backups: %v", err)
-						phase = stopped
-						return
-					}
-				}
-
-				// create destination path
-				if err := createIfNotExists(dstPath, 0755); err != nil {
-					log.Printf("cannot create destination path: %v", err)
-					phase = stopped
-					return
-				}
-
-				// recursively copy source to destination
-				if err := copyDirectory(srcPath, dstPath); err != nil {
-					log.Printf("cannot copy source to destination: %v", err)
-					phase = stopped
-					return
-				}
-
-				// return stats
-				log.Printf("timestamp: %s\n", time.Now().Format(TimeFormat))
-				log.Printf("total time: %s\n", time.Since(t))
-				log.Printf("total dirs copied: %d\n", dCounter)
-				log.Printf("total files copied: %d\n", fCounter)
-
-				// reset phase
-				resetPhase()
-
-				// launch noita automatically after successful backup
-				if autoLaunchChecked {
-					err = LaunchNoita(async)
-					if err != nil {
-						log.Printf("failed to launch noita: %v", err)
-					}
-				}
-
-			}()
+			if async {
+				go func() {
+					backupNoita(async, maxBackups)
+				}()
+			} else {
+				backupNoita(async, maxBackups)
+			}
 		} else {
 			log.Printf("backup operation already in progress")
 		}
 	} else {
 		log.Printf("noita.exe cannot be running to backup")
+	}
+}
+
+func backupNoita(async bool, maxBackups int) {
+	phase = started
+	// build timestamp
+	t := time.Now()
+	datePath := t.Format(TimeFormat)
+
+	// build source path
+	srcPath := viper.GetString("source-path")
+
+	// build destination path
+	dstPath := viper.GetString("destination-path")
+
+	// mutate destination with timestamp
+	backupPath := dstPath
+	dstPath = fmt.Sprintf("%s\\%s", dstPath, datePath)
+
+	// report start
+	log.Printf("timestamp: %s\n", datePath)
+	log.Printf("source: %s\n", srcPath)
+	log.Printf("destination: %s\n", dstPath)
+
+	numberOfBackups, err := getNumBackups(backupPath)
+	if err != nil {
+		log.Printf("error getting backups: %v", err)
+		phase = stopped
+		return
+	} else {
+		log.Printf("number of backups: %d", numberOfBackups)
+	}
+
+	// protect against invalid maxBackups
+	// cannot breach maximum (64)
+	// cannot breach minimum (1)
+	if maxBackups > ConfigMaxNumBackupsToKeep || maxBackups <= 0 {
+		maxBackups = ConfigMaxNumBackupsToKeep
+	}
+
+	if numberOfBackups >= maxBackups {
+		log.Printf("maximum backup threshold reached")
+
+		// get and sort backup directories
+		// oldest are first in the sorted slice
+		sortedBackupDirs, err := getBackupDirs(backupPath)
+		if err != nil {
+			log.Printf("error getting backups: %v", err)
+			phase = stopped
+			return
+		}
+
+		// clean backup directories - 1 to make room for this backup
+		if err := cleanBackups(sortedBackupDirs, backupPath, maxBackups-1); err != nil {
+			log.Printf("failure deleting backups: %v", err)
+			phase = stopped
+			return
+		}
+	}
+
+	// create destination path
+	if err := createIfNotExists(dstPath, 0755); err != nil {
+		log.Printf("cannot create destination path: %v", err)
+		phase = stopped
+		return
+	}
+
+	// recursively copy source to destination
+	if err := copyDirectory(srcPath, dstPath); err != nil {
+		log.Printf("cannot copy source to destination: %v", err)
+		phase = stopped
+		return
+	}
+
+	// return stats
+	log.Printf("timestamp: %s\n", time.Now().Format(TimeFormat))
+	log.Printf("total time: %s\n", time.Since(t))
+	log.Printf("total dirs copied: %d\n", dCounter)
+	log.Printf("total files copied: %d\n", fCounter)
+
+	// reset phase
+	resetPhase()
+
+	// launch noita automatically after successful backup
+	if autoLaunchChecked {
+		err = LaunchNoita(async)
+		if err != nil {
+			log.Printf("failed to launch noita: %v", err)
+		}
 	}
 }
 

@@ -111,47 +111,15 @@ func restoreSave00(file, dstPath string, backupDirs []time.Time, async bool) err
 //
 // It returns an error if any of the operations fail.
 func RestoreNoita(file string, async bool) error {
-	// TODO: make this a channel/wait group as the logging is coming in incorrectly
 	if !isNoitaRunning() {
 		if phase == stopped {
-			go func() {
-				phase = started
-				// get destination path
-				dstPath := viper.GetString("destination-path")
-
-				// get sorted backup directories
-				backupDirs, err := getBackupDirs(dstPath)
-				if err != nil {
-					log.Printf("failed to get backup dirs: %v", err)
-					phase = stopped
-					return
-				}
-
-				// protect against no backups
-				if len(backupDirs) == 0 {
-					log.Print("no backup dirs found, cannot restore")
-					phase = stopped
-					return
-				}
-
-				// process save00
-				// 1. delete save00.bak
-				// 2. rename save00 -> save00.bak
-				if err := processSave00(); err != nil {
-					log.Printf("error processing save00: %v", err)
-					phase = stopped
-					return
-				}
-
-				// restore specified (default latest) backup to destination
-				if err := restoreSave00(file, dstPath, backupDirs, async); err != nil {
-					log.Printf("error restoring backup file to save00: %v", err)
-					phase = stopped
-					return
-				}
-
-				return
-			}()
+			if async {
+				go func() {
+					restoreNoita(file, async)
+				}()
+			} else {
+				restoreNoita(file, async)
+			}
 		}
 	} else {
 		log.Print("noita.exe cannot be running during a restore")
@@ -159,4 +127,43 @@ func RestoreNoita(file string, async bool) error {
 	}
 
 	return nil
+}
+
+func restoreNoita(file string, async bool) {
+	phase = started
+	// get destination path
+	dstPath := viper.GetString("destination-path")
+
+	// get sorted backup directories
+	backupDirs, err := getBackupDirs(dstPath)
+	if err != nil {
+		log.Printf("failed to get backup dirs: %v", err)
+		phase = stopped
+		return
+	}
+
+	// protect against no backups
+	if len(backupDirs) == 0 {
+		log.Print("no backup dirs found, cannot restore")
+		phase = stopped
+		return
+	}
+
+	// process save00
+	// 1. delete save00.bak
+	// 2. rename save00 -> save00.bak
+	if err := processSave00(); err != nil {
+		log.Printf("error processing save00: %v", err)
+		phase = stopped
+		return
+	}
+
+	// restore specified (default latest) backup to destination
+	if err := restoreSave00(file, dstPath, backupDirs, async); err != nil {
+		log.Printf("error restoring backup file to save00: %v", err)
+		phase = stopped
+		return
+	}
+
+	return
 }

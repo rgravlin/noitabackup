@@ -1,10 +1,14 @@
-# Noita Backup (file) Utility
+# Noita Backup and Restore (file) Utility
+
+The goal of this project is to have an easy to use Noita backup and restore solution.  I work mostly
+in Go, so that's why the language was chosen.  The UI was built with [GioUI](https://github.com/gioui/gio) and
+the command line interface with [cobra](https://github.com/spf13/cobra) 
 
 * Currently, Windows only!
 * Basic GUI launcher features:
   * Backup and Restore (with auto-launch noita.exe)
   * Number of backups to keep
-  * Open/Close noita.exe
+  * Open noita.exe
   * Explore Backups
 * Supports custom source directory
 * Supports custom destination directory
@@ -30,16 +34,29 @@ use the following:
 ```commandline
 PS C:\> $env:CONFIG_NOITA_DST_PATH = 'C:\Users\demo\backuptest'
 PS C:\> .\noitabackup.exe
-2023/09/20 08:55:39 Destination: C:\Users\demo\backuptest\2023-09-20-08-55-39
-2023/09/20 08:55:39 Timestamp: 2023-09-20-08-55-39
-2023/09/20 08:55:39 Total dirs copied: 8
-2023/09/20 08:55:39 Total files copied: 2057
+2024/06/12 07:14:16 timestamp: 2024-06-12-07-14-16
+2024/06/12 07:14:16 source: C:\Users\demo\AppData\Roaming\..\LocalLow\Nolla_Games_Noita\save00
+2024/06/12 07:14:16 destination: C:\Users\demo\backuptest\2024-06-12-07-14-16
+2024/06/12 07:14:16 number of backups: 16
+2024/06/12 07:14:16 maximum backup threshold reached
+2024/06/12 07:14:16 removing backup folder: C:\Users\demo\backuptest\2024-06-11-07-33-30
+2024/06/12 07:14:24 timestamp: 2024-06-12-07-14-24
+2024/06/12 07:14:24 total time: 8.5259157s
+2024/06/12 07:14:24 total dirs copied: 8
+2024/06/12 07:14:24 total files copied: 10418
 ```
 ## Command Line - Alter default configuration
 ```commandline
 C:\> set CONFIG_NOITA_DST_PATH='C:\Users\demo\backuptest'
-C:\> noitabackup.exe
-2023/09/20 08:58:06 Destination: C:\Users\demo\backuptest\2023-09-20-08-58-05
-2023/09/20 08:58:06 Total dirs copied: 8
-2023/09/20 08:58:06 Total files copied: 2078
+C:\> noitabackup.exe backup
+2024/06/12 07:14:16 timestamp: 2024-06-12-07-14-16
+2024/06/12 07:14:16 source: C:\Users\demo\AppData\Roaming\..\LocalLow\Nolla_Games_Noita\save00
+2024/06/12 07:14:16 destination: C:\Users\demo\NoitaBackups\2024-06-12-07-14-16
+2024/06/12 07:14:16 number of backups: 16
+2024/06/12 07:14:16 maximum backup threshold reached
+2024/06/12 07:14:16 removing backup folder: C:\Users\demo\NoitaBackups\2024-06-11-07-33-30
+2024/06/12 07:14:24 timestamp: 2024-06-12-07-14-24
+2024/06/12 07:14:24 total time: 8.5259157s
+2024/06/12 07:14:24 total dirs copied: 8
+2024/06/12 07:14:24 total files copied: 10418
 ```
