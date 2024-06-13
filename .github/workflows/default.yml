@@ -15,7 +15,7 @@ jobs:
         uses: gaurav-nelson/github-action-markdown-link-check@v1
 
   lint-go:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -30,6 +30,7 @@ jobs:
           version: v1.58
 
   build:
+    needs: [lint-go]
     runs-on: windows-latest
     steps:
       - name: Checkout repo
