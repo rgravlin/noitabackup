@@ -59,7 +59,6 @@ jobs:
         if: steps.go-changes.outputs.src == 'true'
         run: |
           go get .
-          go install gioui.org/cmd/gogio@latest
 
       - name: Build
         if: steps.go-changes.outputs.src == 'true'
