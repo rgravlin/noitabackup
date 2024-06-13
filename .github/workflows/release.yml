@@ -24,14 +24,21 @@ jobs:
           go get .
           go install gioui.org/cmd/gogio@latest
 
-      - name: Build
-        run: gogio -target=windows -ldflags="-s -w" .
+      - name: Build NoitaBackup GUI executables
+        run: |
+          .\gogio.exe -target=windows -arch=386   -ldflags="-H=windowsgui -s -w" -o noitabackup-386.exe .
+          .\gogio.exe -target=windows -arch=amd64 -ldflags="-H=windowsgui -s -w" -o noitabackup-amd64.exe .
+
+      - name: Build NoitaBackup CLI executables
+        run: |
+          .\gogio.exe -target=windows -arch=386   -ldflags="-s -w" -o noitabackup-cli-386.exe .
+          .\gogio.exe -target=windows -arch=amd64 -ldflags="-s -w" -o noitabackup-cli-amd64.exe .
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: noitabackup-executable
-          path: noitabackup.exe
+          name: noitabackup-executables
+          path: noitabackup*.exe
 
       - name: Test with the Go CLI
         run: go test
@@ -58,11 +65,15 @@ jobs:
       - name: Download a single artifact
         uses: actions/download-artifact@v4
         with:
-          name: noitabackup-executable
+          name: noitabackup-executables
 
       - name: Release
         uses: softprops/action-gh-release@v2.0.5
         with:
-          files: noitabackup.exe
+          files: |
+            noitabackup-386.exe
+            noitabackup-amd64.exe
+            noitabackup-cli-386.exe
+            noitabackup-cli-amd64.exe
           tag_name: ${{ steps.tag.outputs.new_tag }}
           token: ${{ secrets.GITHUB_TOKEN }}
