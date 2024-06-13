@@ -4,9 +4,8 @@ A Noita backup and restore manager
 
 ### Synopsis
 
-A configurable Noita backup and restore manager and launcher.  Automates the tedious
-task of stopping, backing up, restoring, and restarting Noita.  Includes both a GUI and command
-line interface.
+A configurable Noita backup and restore manager and launcher.  Automates the tedious task of stopping,
+backing up, restoring, and restarting Noita.  Includes both a GUI and command line interface.
 
 ```
 noitabackup [flags]

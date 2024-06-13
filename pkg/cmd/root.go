@@ -27,27 +27,9 @@ var cfgFile, sourcePath, destinationPath string
 var rootCmd = &cobra.Command{
 	Use:   "noitabackup",
 	Short: "A Noita backup and restore manager",
-	Long: `A configurable Noita backup and restore manager and launcher.  Automates the tedious
-task of stopping, backing up, restoring, and restarting Noita.  Includes both a GUI and command
-line interface.`,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if numBackupsToKeep > ConfigMaxNumBackupsToKeep || numBackupsToKeep <= 0 {
-			return fmt.Errorf("number of backups to keep must be between 1 and 100")
-		}
-
-		if path, err := lib.GetSourcePath(viper.GetString("source-path")); err != nil {
-			return fmt.Errorf("error getting source path: %v", err)
-		} else {
-			viper.Set("source-path", path)
-		}
-		if path, err := lib.GetDestinationPath(viper.GetString("destination-path")); err != nil {
-			return fmt.Errorf("error getting destination path: %v", err)
-		} else {
-			viper.Set("destination-path", path)
-		}
-
-		return nil
-	},
+	Long: `A configurable Noita backup and restore manager and launcher.  Automates the tedious task of stopping,
+backing up, restoring, and restarting Noita.  Includes both a GUI and command line interface.`,
+	PreRunE: validateCommandOptions,
 	Run: func(cmd *cobra.Command, args []string) {
 		go func() {
 			window := new(app.Window)

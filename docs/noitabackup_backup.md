@@ -4,8 +4,8 @@ Backup the Noita save00 directory
 
 ### Synopsis
 
-Backs up the Noita save00 directory to %USERPROFILE%\NoitaBackup or
-a specified destination directory through the environmental variable CONFIG_NOITA_DST_PATH.
+Backs up the Noita save00 directory to %USERPROFILE%\NoitaBackup or a specified destination directory
+through the environmental variable CONFIG_NOITA_DST_PATH.
 
 ```
 noitabackup backup [flags]

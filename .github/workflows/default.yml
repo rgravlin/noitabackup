@@ -8,10 +8,29 @@ jobs:
   lint-markdown:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
       - name: Validate Markdown
         uses: gaurav-nelson/github-action-markdown-link-check@v1
 
+  lint-go:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.58
+
   build:
+    needs: [lint-go]
     runs-on: windows-latest
     steps:
       - name: Checkout repo

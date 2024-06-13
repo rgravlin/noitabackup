@@ -129,6 +129,15 @@ func RestoreNoita(file string, async bool) error {
 	return nil
 }
 
+// restoreNoita restores the save00 directory by performing the following steps:
+// 1. Set the phase variable to started.
+// 2. Get the destination path from the configuration using viper.GetString.
+// 3. Get the sorted backup directories using getBackupDirs.
+// 4. Check if any backup directories exist and return if none are found.
+// 5. Call processSave00 to rename the save00 folder to save00.bak.
+// 6. Call restoreSave00 to restore the specified backup or the latest backup to the save00 directory.
+// 7. If autoLaunchChecked is true, launch Noita after successful restore.
+// The function does not return any value.
 func restoreNoita(file string, async bool) {
 	phase = started
 	// get destination path
@@ -164,6 +173,4 @@ func restoreNoita(file string, async bool) {
 		phase = stopped
 		return
 	}
-
-	return
 }

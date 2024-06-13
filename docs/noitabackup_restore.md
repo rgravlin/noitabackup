@@ -4,9 +4,9 @@ Restore the latest backed up Noita save
 
 ### Synopsis
 
-Restores the latest backed up Noita save to the save00 directory.  Preserves your current
-save by deleting save00.bak and renaming save00 to save00.bak.  It then restores the latest save
-file to the save00 directory.
+Restores the latest backed up Noita save to the save00 directory or a specified source directory through the
+environmental variable CONFIG_NOITA_SRC_PATH.  Preserves your current save by deleting save00.bak and renaming save00
+to save00.bak.  It then restores the latest save file to the save00 directory.
 
 ```
 noitabackup restore [flags]

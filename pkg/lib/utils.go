@@ -10,6 +10,13 @@ import (
 	"path/filepath"
 )
 
+// ConfigDefaultAppDataPath is the default path to the Noita application data folder.
+// ConfigDefaultSavePath is the default folder name for saving Noita game data.
+// ConfigDefaultDstPath is the default folder name for storing Noita backup files.
+// ConfigUserProfile is the environment variable for the user profile path.
+// ConfigAppData is the environment variable for the application data path.
+// ConfigOverrideSrcPath is the environment variable for overriding the default source path for Noita backups.
+// ConfigOverrideDstPath is the environment variable for overriding the default destination path for Noita backups.
 const (
 	ConfigDefaultAppDataPath = "..\\LocalLow\\Nolla_Games_Noita"
 	ConfigDefaultSavePath    = "save00"
@@ -20,10 +27,13 @@ const (
 	ConfigOverrideDstPath    = "CONFIG_NOITA_DST_PATH"
 )
 
+// GetDefaultSourcePath returns the default source path for the backup operation by calling the buildDefaultSrcPath function.
 func GetDefaultSourcePath() string {
 	return buildDefaultSrcPath()
 }
 
+// GetDefaultDestinationPath retrieves the default destination path for the backup operation
+// by calling the buildDefaultDstPath function. It then returns the default destination path as a string.
 func GetDefaultDestinationPath() string {
 	return buildDefaultDstPath()
 }
@@ -46,9 +56,9 @@ func GetSourcePath(path string) (string, error) {
 	return srcPath, nil
 }
 
-// GetDestinationPath retrieves the destination path for the backup operation by checking for a destination path override in the
-// environment variables. If a destination path override is not found, it uses the provided path. It then validates
-// if the destination path exists and returns it along with any error encountered.
+// GetDestinationPath retrieves the destination path for the backup operation by checking for a destination path
+// override in the environment variables. If a destination path override is not found, it uses the provided path. It
+// then validates if the destination path exists and returns it along with any error encountered.
 func GetDestinationPath(path string) (string, error) {
 	// check for destination path override
 	dstPath := os.Getenv(ConfigOverrideDstPath)
@@ -213,8 +223,8 @@ func buildDefaultSrcPath() string {
 	return fmt.Sprintf("%s\\%s\\%s", path, ConfigDefaultAppDataPath, ConfigDefaultSavePath)
 }
 
-// buildDefaultDstPath builds the default destination path for the backup operation by concatenating the
-// user's profile path with the value of ConfigDefaultDstPath constant.
+// buildDefaultDstPath builds the default destination path for the backup operation by
+// concatenating the user's profile path with the value of ConfigDefaultDstPath constant.
 // It then returns the formatted path as a string.
 func buildDefaultDstPath() string {
 	path := os.Getenv(ConfigUserProfile)
@@ -236,11 +246,11 @@ func LaunchExplorer() error {
 	return nil
 }
 
-// LaunchNoita launches the Noita game using Steam.
-// It takes a boolean parameter async, which determines if the game should be launched asynchronously.
+// LaunchNoita launches the Noita game using Steam by executing the Steam executable with the Noita game flags.
+// The function takes a boolean parameter async which determines if the game should be launched asynchronously.
 // If async is true, the game is launched using cmd.Start(), otherwise it is launched using cmd.Run().
-// If the Noita game is already running, it logs a message stating that the game is already running.
-// It returns an error if any occurs during the execution of the function.
+// If the Noita game is already running, the function logs a message stating that the game is already running.
+// The function returns an error if any occurs during the execution of the function.
 func LaunchNoita(async bool) error {
 	cmd := exec.Command(SteamExe, SteamNoitaFlags)
 
