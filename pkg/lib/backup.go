@@ -57,6 +57,19 @@ func BackupNoita(async bool, maxBackups int) {
 	}
 }
 
+// backupNoita performs the backup operation for the Noita game.
+// It sets the phase to 'started'.
+// It builds the timestamp, source path, and destination path.
+// It retrieves the number of existing backups and checks if it exceeds the maximum threshold.
+// If the number of backups exceeds the maximum threshold, it sorts the backup directories.
+// Then it cleans up the oldest backup directories to make room for the new backup.
+// After that, it creates the destination path and copies the source directory contents to the destination.
+// Lastly, it logs the backup statistics, resets the phase, and launches Noita if auto-launch is enabled.
+//
+// Parameters:
+//   - async (bool): Determines whether to launch Noita asynchronously after the backup (true) or synchronously (false).
+//   - maxBackups (int): The maximum number of backups to keep. If the number of backups exceeds this limit,
+//     the oldest backups will be deleted to make room for new backups.
 func backupNoita(async bool, maxBackups int) {
 	phase = started
 	// build timestamp
@@ -247,8 +260,20 @@ func getNumBackups(backupPath string) (int, error) {
 	return len(backupDirs), nil
 }
 
+// ByDate is a type that represents a slice of time.Time values.
 type ByDate []time.Time
 
-func (a ByDate) Len() int           { return len(a) }
+// Len returns the length of the slice "a". It is a method of the "ByDate" type.
+func (a ByDate) Len() int { return len(a) }
+
+// Swap swaps the elements at index i and j in the ByDate slice.
+// This method is used to modify the order of the elements in the slice based on their dates.
+// It takes the ByDate slice as input and swaps the elements at index i and j by assigning the value of
+// element at index j to element at index i and vice versa.
+// This operation modifies the original slice.
+//
+// Parameters:
+//   - i (int): The index of the first element to be swapped.
+//   - j (int): The index of the second element to be swapped.
 func (a ByDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByDate) Less(i, j int) bool { return a[i].Before(a[j]) }
