@@ -173,6 +173,4 @@ func restoreNoita(file string, async bool) {
 		phase = stopped
 		return
 	}
-
-	return
 }
