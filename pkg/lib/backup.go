@@ -26,7 +26,6 @@ type Backup struct {
 	fileCounter       int
 	srcPath           string
 	dstPath           string
-	dstFile           string
 	phase             int
 	timestamp         time.Time
 	sortedBackupDirs  []time.Time

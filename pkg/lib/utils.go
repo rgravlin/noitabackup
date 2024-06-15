@@ -88,11 +88,6 @@ func GetDestinationPath(path string) (string, error) {
 //
 // Returns:
 // - error: An error if any operation fails, otherwise nil.
-func (b *Backup) copyDirectory() error {
-
-	return nil
-}
-
 func copyDirectory(src, dst string, dirCounter, fileCounter *int) error {
 	entries, err := os.ReadDir(src)
 	if err != nil {
