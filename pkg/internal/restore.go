@@ -1,4 +1,4 @@
-package lib
+package internal
 
 import (
 	"fmt"
@@ -85,6 +85,8 @@ func (r *Restore) restoreNoita() {
 		r.backup.phase = stopped
 		return
 	}
+
+	r.backup.phase = stopped
 }
 
 func convertTimeSliceToStrings(timeSlice []time.Time) []string {
@@ -147,7 +149,6 @@ func restoreSave00(file, dstPath string, backupDirs []time.Time, async bool, aut
 	}
 
 	log.Printf("successfully restored backup: %s", latest)
-	phase = stopped
 
 	// launch noita after successful restore
 	if autoLaunch {

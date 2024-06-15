@@ -5,7 +5,7 @@ Copyright © 2024 Ryan Gravlin ryan.gravlin@gmail.com
 package cmd
 
 import (
-	"github.com/rgravlin/noitabackup/pkg/lib"
+	"github.com/rgravlin/noitabackup/pkg/internal"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -18,7 +18,7 @@ var backupCmd = &cobra.Command{
 through the environmental variable CONFIG_NOITA_DST_PATH.`,
 	PreRunE: validateCommandOptions,
 	Run: func(cmd *cobra.Command, args []string) {
-		backup := lib.NewBackup(
+		backup := internal.NewBackup(
 			false,
 			viper.GetBool("auto-launch"),
 			viper.GetInt("num-backups"),

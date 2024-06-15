@@ -5,7 +5,7 @@ Copyright © 2024 Ryan Gravlin ryan.gravlin@gmail.com
 package cmd
 
 import (
-	"github.com/rgravlin/noitabackup/pkg/lib"
+	"github.com/rgravlin/noitabackup/pkg/internal"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -19,9 +19,9 @@ environmental variable CONFIG_NOITA_SRC_PATH.  Preserves your current save by de
 to save00.bak.  It then restores the latest save file to the save00 directory.`,
 	PreRunE: validateCommandOptions,
 	Run: func(cmd *cobra.Command, args []string) {
-		restore := lib.NewRestore(
+		restore := internal.NewRestore(
 			"latest",
-			lib.NewBackup(
+			internal.NewBackup(
 				false,
 				viper.GetBool("auto-launch"),
 				viper.GetInt("num-backups"),
