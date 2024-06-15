@@ -7,7 +7,7 @@ package cmd
 import (
 	"github.com/rgravlin/noitabackup/pkg/lib"
 	"github.com/spf13/cobra"
-	"log"
+	"github.com/spf13/viper"
 )
 
 // restoreCmd represents the restore command
@@ -19,10 +19,17 @@ environmental variable CONFIG_NOITA_SRC_PATH.  Preserves your current save by de
 to save00.bak.  It then restores the latest save file to the save00 directory.`,
 	PreRunE: validateCommandOptions,
 	Run: func(cmd *cobra.Command, args []string) {
-		err := lib.RestoreNoita("", false)
-		if err != nil {
-			log.Printf("failed to restore noita backup: %v", err)
-		}
+		restore := lib.NewRestore(
+			"latest",
+			lib.NewBackup(
+				false,
+				viper.GetBool("auto-launch"),
+				viper.GetInt("num-backups"),
+				viper.GetString("source-path"),
+				viper.GetString("destination-path"),
+			),
+		)
+		restore.RestoreNoita()
 	},
 }
 

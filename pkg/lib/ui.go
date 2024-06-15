@@ -81,19 +81,29 @@ func Run(window *app.Window) error {
 			}
 
 			for restoreButton.Clicked(gtx) {
-				if !isNoitaRunning() {
-					if err := RestoreNoita("", true); err != nil {
-						log.Printf("failed to restore latest noita save: %v", err)
-					} else {
-						log.Print("successful restore request")
-					}
-				} else {
-					log.Printf("noita.exe cannot be running to restore")
-				}
+				restore := NewRestore(
+					"latest",
+					NewBackup(
+						true,
+						viper.GetBool("auto-launch"),
+						viper.GetInt("num-backups"),
+						viper.GetString("source-path"),
+						viper.GetString("destination-path"),
+					),
+				)
+				restore.RestoreNoita()
 			}
 
 			for backupButton.Clicked(gtx) {
-				BackupNoita(true, viper.GetInt("num-backups"))
+				backup := NewBackup(
+					true,
+					viper.GetBool("auto-launch"),
+					viper.GetInt("num-backups"),
+					viper.GetString("source-path"),
+					viper.GetString("destination-path"),
+				)
+				backup.BackupNoita()
+				// BackupNoita(true, viper.GetInt("num-backups"))
 			}
 
 			cl := clip.Rect{Max: e.Size}.Push(gtx.Ops)

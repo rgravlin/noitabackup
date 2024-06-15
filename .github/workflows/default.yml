@@ -62,7 +62,7 @@ jobs:
 
       - name: Build
         if: steps.go-changes.outputs.src == 'true'
-        run: gogio -target=windows -ldflags="-s -w" .
+        run: .\gogio.exe -target=windows -ldflags="-s -w" .
 
       - name: Test with the Go CLI
         if: steps.go-changes.outputs.src == 'true'

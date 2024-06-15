@@ -2,7 +2,6 @@ package lib
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"log"
 	"os"
 	"path/filepath"
@@ -19,170 +18,139 @@ const (
 	ExplorerExe               = "explorer"
 )
 
-var (
-	dCounter = 0 // directory copy counter
-	fCounter = 0 // file copy counter
-)
+type Backup struct {
+	async             bool
+	autoLaunchChecked bool
+	maxBackups        int
+	dirCounter        int
+	fileCounter       int
+	srcPath           string
+	dstPath           string
+	phase             int
+	timestamp         time.Time
+	sortedBackupDirs  []time.Time
+}
 
-// BackupNoita performs the backup operation for the Noita game.
-// It checks if Noita is running and if the backup operation is already in progress.
-// If Noita is not running and the backup operation is not already in progress, it proceeds with the backup process.
-// The function builds the timestamp, source path, and destination path.
-// It then retrieves the number of existing backups and checks if it exceeds the maximum backup threshold.
-// If the number of backups exceeds the maximum threshold, it sorts the backup directories from oldest to newest.
-// It then cleans up the oldest backup directories to make room for the new backup.
-// After that, it creates the destination path and copies the source directory contents to the destination.
-// Lastly, it logs the backup statistics and resets the phase.
-// If the auto-launch feature is enabled, it launches Noita after a successful backup.
-//
-// Parameters:
-//   - async (bool): Determines whether to launch Noita asynchronously after the backup (true) or synchronously (false).
-//   - maxBackups (int): The maximum number of backups to keep. If the number of backups exceeds this limit,
-//     the oldest backups will be deleted to make room for new backups.
-func BackupNoita(async bool, maxBackups int) {
+func NewBackup(async, autoLaunchChecked bool, maxBackups int, srcPath, dstPath string) *Backup {
+	return &Backup{
+		async:             async,
+		autoLaunchChecked: autoLaunchChecked,
+		maxBackups:        maxBackups,
+		srcPath:           srcPath,
+		dstPath:           dstPath,
+	}
+}
+
+func (b *Backup) BackupNoita() {
 	if !isNoitaRunning() {
-		if phase == stopped {
-			if async {
-				go func() {
-					backupNoita(async, maxBackups)
-				}()
+		if b.phase == stopped {
+			if b.async {
+				go b.backupNoita()
 			} else {
-				backupNoita(async, maxBackups)
+				b.backupNoita()
 			}
 		} else {
-			log.Printf("backup operation already in progress")
+			log.Printf("operation already in progress")
 		}
 	} else {
 		log.Printf("noita.exe cannot be running to backup")
 	}
 }
 
-// backupNoita performs the backup operation for the Noita game.
-// It sets the phase to 'started'.
-// It builds the timestamp, source path, and destination path.
-// It retrieves the number of existing backups and checks if it exceeds the maximum threshold.
-// If the number of backups exceeds the maximum threshold, it sorts the backup directories.
-// Then it cleans up the oldest backup directories to make room for the new backup.
-// After that, it creates the destination path and copies the source directory contents to the destination.
-// Lastly, it logs the backup statistics, resets the phase, and launches Noita if auto-launch is enabled.
-//
-// Parameters:
-//   - async (bool): Determines whether to launch Noita asynchronously after the backup (true) or synchronously (false).
-//   - maxBackups (int): The maximum number of backups to keep. If the number of backups exceeds this limit,
-//     the oldest backups will be deleted to make room for new backups.
-func backupNoita(async bool, maxBackups int) {
-	phase = started
-	// build timestamp
+func (b *Backup) backupNoita() {
 	t := time.Now()
-	datePath := t.Format(TimeFormat)
+	b.timestamp = t
+	b.phase = started
+	b.reportStart()
 
-	// build source path
-	srcPath := viper.GetString("source-path")
+	newBackupPath := fmt.Sprintf("%s\\%s", b.dstPath, b.timestamp.Format(TimeFormat))
 
-	// build destination path
-	dstPath := viper.GetString("destination-path")
-
-	// mutate destination with timestamp
-	backupPath := dstPath
-	dstPath = fmt.Sprintf("%s\\%s", dstPath, datePath)
-
-	// report start
-	log.Printf("timestamp: %s\n", datePath)
-	log.Printf("source: %s\n", srcPath)
-	log.Printf("destination: %s\n", dstPath)
-
-	numberOfBackups, err := getNumBackups(backupPath)
+	// get current number of backups
+	curNumBackups, err := getNumBackups(b.dstPath)
 	if err != nil {
 		log.Printf("error getting backups: %v", err)
 		phase = stopped
 		return
 	} else {
-		log.Printf("number of backups: %d", numberOfBackups)
+		log.Printf("number of backups: %d", curNumBackups)
 	}
 
 	// protect against invalid maxBackups
-	// cannot breach maximum (64)
-	// cannot breach minimum (1)
-	if maxBackups > ConfigMaxNumBackupsToKeep || maxBackups <= 0 {
-		maxBackups = ConfigMaxNumBackupsToKeep
+	if b.maxBackups > ConfigMaxNumBackupsToKeep || b.maxBackups <= 0 {
+		b.maxBackups = ConfigMaxNumBackupsToKeep
 	}
 
-	if numberOfBackups >= maxBackups {
+	// clean up backups
+	if curNumBackups >= b.maxBackups {
 		log.Printf("maximum backup threshold reached")
 
 		// get and sort backup directories
 		// oldest are first in the sorted slice
-		sortedBackupDirs, err := getBackupDirs(backupPath)
+		b.sortedBackupDirs, err = getBackupDirs(b.dstPath, TimeFormat)
 		if err != nil {
 			log.Printf("error getting backups: %v", err)
 			phase = stopped
 			return
 		}
 
-		// clean backup directories - 1 to make room for this backup
-		if err := cleanBackups(sortedBackupDirs, backupPath, maxBackups-1); err != nil {
+		// clean backup directories to make room for this backup
+		if err := b.cleanBackups(); err != nil {
 			log.Printf("failure deleting backups: %v", err)
 			phase = stopped
 			return
 		}
 	}
 
-	// create destination path
-	if err := createIfNotExists(dstPath, 0755); err != nil {
+	// create new backup path
+	if err := createIfNotExists(newBackupPath, 0755); err != nil {
 		log.Printf("cannot create destination path: %v", err)
 		phase = stopped
 		return
 	}
 
 	// recursively copy source to destination
-	if err := copyDirectory(srcPath, dstPath); err != nil {
+	if err := copyDirectory(b.srcPath, newBackupPath, &b.dirCounter, &b.fileCounter); err != nil {
 		log.Printf("cannot copy source to destination: %v", err)
 		phase = stopped
 		return
 	}
 
-	// return stats
-	log.Printf("timestamp: %s\n", time.Now().Format(TimeFormat))
-	log.Printf("total time: %s\n", time.Since(t))
-	log.Printf("total dirs copied: %d\n", dCounter)
-	log.Printf("total files copied: %d\n", fCounter)
+	b.reportStop()
+	b.resetPhase()
 
-	// reset phase
-	resetPhase()
-
-	// launch noita automatically after successful backup
-	if autoLaunchChecked {
-		err = LaunchNoita(async)
+	if b.autoLaunchChecked {
+		err = LaunchNoita(b.async)
 		if err != nil {
 			log.Printf("failed to launch noita: %v", err)
 		}
 	}
 }
 
-// resetPhase resets the phase, dCounter, and fCounter variables to their initial values.
-func resetPhase() {
-	phase = stopped
-	dCounter = 0
-	fCounter = 0
+func (b *Backup) resetPhase() {
+	b.phase = stopped
+	b.dirCounter = 0
+	b.fileCounter = 0
 }
 
-// cleanBackups removes the oldest backup directories to make room for new backups.
-// It receives a list of backup directories, the backup path, and the number of backups to keep.
-// It calculates the number of directories to remove based on the difference between the total number of backups and the number of backups to keep.
-// Then it iterates through the backup directories from oldest to newest and removes the oldest directories from the file system.
-// The function returns an error if any deletion operation fails.
-//
-// Parameters:
-//   - backupDirs ([]time.Time): A list of backup directories represented by timestamps.
-//   - backupPath (string): The path to the backup directory.
-//   - numToKeep (int): The maximum number of backups to keep. If the number of backups exceeds this limit,
-//     the oldest backups will be deleted to make room for new backups.
-func cleanBackups(backupDirs []time.Time, backupPath string, numToKeep int) error {
-	totalBackups := len(backupDirs)
-	totalToRemove := totalBackups - numToKeep
+func (b *Backup) reportStart() {
+	log.Printf("timestamp: %s\n", b.timestamp)
+	log.Printf("source: %s\n", b.srcPath)
+	log.Printf("destination: %s\n", fmt.Sprintf("%s\\%s", b.dstPath, b.timestamp.Format(TimeFormat)))
+}
+
+func (b *Backup) reportStop() {
+	log.Printf("timestamp: %s\n", time.Now())
+	log.Printf("total time: %s\n", time.Since(b.timestamp))
+	log.Printf("total dirs copied: %d\n", b.dirCounter)
+	log.Printf("total files copied: %d\n", b.fileCounter)
+}
+
+func (b *Backup) cleanBackups() error {
+	totalBackups := len(b.sortedBackupDirs)
+	totalToRemove := totalBackups - (b.maxBackups - 1)
 
 	for i := 0; i < totalToRemove; i++ {
-		folder := fmt.Sprintf("%s\\%s", backupPath, backupDirs[i].Format(TimeFormat))
+		folder := fmt.Sprintf("%s\\%s", b.dstPath, b.sortedBackupDirs[i].Format(TimeFormat))
 		log.Printf("removing backup folder: %s", folder)
 		err := os.RemoveAll(folder)
 		if err != nil {
@@ -193,21 +161,7 @@ func cleanBackups(backupDirs []time.Time, backupPath string, numToKeep int) erro
 	return nil
 }
 
-// getBackupDirs retrieves the list of backup directories in the specified backupPath.
-// If backupPath does not exist, an empty slice is returned.
-// If an error occurs while reading the backupPath directory, the error is returned.
-// For each directory entry in backupPath, the function checks if it is a directory.
-// If it is a directory, it parses the directory name as a time value using the TimeFormat constant.
-// The parsed time value is appended to the backupDirs slice.
-// Finally, the backupDirs slice is sorted in ascending order based on the time values and returned.
-//
-// Parameters:
-// - backupPath (string): The path to the backup directory.
-//
-// Returns:
-// - ([]time.Time): The list of backup directories sorted by ascending time values.
-// - (error): An error that occurred during the process, or nil if successful.
-func getBackupDirs(backupPath string) ([]time.Time, error) {
+func getBackupDirs(backupPath, timePattern string) ([]time.Time, error) {
 	var backupDirs []time.Time
 	if !exists(backupPath) {
 		return backupDirs, nil
@@ -227,7 +181,7 @@ func getBackupDirs(backupPath string) ([]time.Time, error) {
 			switch srcInfo.Mode() & os.ModeType {
 			case os.ModeDir:
 				name := strings.Split(srcPath, "\\")
-				nameDate, err := time.Parse(TimeFormat, name[len(name)-1])
+				nameDate, err := time.Parse(timePattern, name[len(name)-1])
 				if err != nil {
 					return backupDirs, err
 				}
@@ -240,40 +194,18 @@ func getBackupDirs(backupPath string) ([]time.Time, error) {
 	}
 }
 
-// getNumBackups retrieves the number of existing backups in the specified backupPath.
-// It calls the getBackupDirs function to retrieve the list of backup directories in the backupPath.
-// The number of backup directories is equal to the number of existing backups.
-//
-// Parameters:
-// - backupPath (string): The path to the backup directory.
-//
-// Returns:
-// - (int): The number of existing backups.
-// - (error): An error that occurred during the process, or nil if successful.
 func getNumBackups(backupPath string) (int, error) {
-	numBackups := 0
-	backupDirs, err := getBackupDirs(backupPath)
+	numBackup := 0
+	backupDirs, err := getBackupDirs(backupPath, TimeFormat)
 	if err != nil {
-		return numBackups, err
+		return numBackup, err
 	}
 
 	return len(backupDirs), nil
 }
 
-// ByDate is a type that represents a slice of time.Time values.
 type ByDate []time.Time
 
-// Len returns the length of the slice "a". It is a method of the "ByDate" type.
-func (a ByDate) Len() int { return len(a) }
-
-// Swap swaps the elements at index i and j in the ByDate slice.
-// This method is used to modify the order of the elements in the slice based on their dates.
-// It takes the ByDate slice as input and swaps the elements at index i and j by assigning the value of
-// element at index j to element at index i and vice versa.
-// This operation modifies the original slice.
-//
-// Parameters:
-//   - i (int): The index of the first element to be swapped.
-//   - j (int): The index of the second element to be swapped.
+func (a ByDate) Len() int           { return len(a) }
 func (a ByDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByDate) Less(i, j int) bool { return a[i].Before(a[j]) }
