@@ -7,9 +7,8 @@ package cmd
 import (
 	"github.com/rgravlin/noitabackup/pkg/lib"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
-
-var numBackupsToKeep int
 
 // backupCmd represents the backup command
 var backupCmd = &cobra.Command{
@@ -19,7 +18,14 @@ var backupCmd = &cobra.Command{
 through the environmental variable CONFIG_NOITA_DST_PATH.`,
 	PreRunE: validateCommandOptions,
 	Run: func(cmd *cobra.Command, args []string) {
-		lib.BackupNoita(false, numBackupsToKeep)
+		backup := lib.NewBackup(
+			false,
+			viper.GetBool("auto-launch"),
+			viper.GetInt("num-backups"),
+			viper.GetString("source-path"),
+			viper.GetString("destination-path"),
+		)
+		backup.BackupNoita()
 	},
 }
 

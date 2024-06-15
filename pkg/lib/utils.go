@@ -88,7 +88,12 @@ func GetDestinationPath(path string) (string, error) {
 //
 // Returns:
 // - error: An error if any operation fails, otherwise nil.
-func copyDirectory(src, dst string) error {
+func (b *Backup) copyDirectory() error {
+
+	return nil
+}
+
+func copyDirectory(src, dst string, dirCounter, fileCounter *int) error {
 	entries, err := os.ReadDir(src)
 	if err != nil {
 		return err
@@ -107,15 +112,15 @@ func copyDirectory(src, dst string) error {
 			if err := createIfNotExists(dstPath, 0755); err != nil {
 				return err
 			}
-			if err := copyDirectory(srcPath, dstPath); err != nil {
+			if err := copyDirectory(srcPath, dstPath, dirCounter, fileCounter); err != nil {
 				return err
 			}
-			dCounter += 1
+			*dirCounter += 1
 		default:
 			if err := copyFile(srcPath, dstPath); err != nil {
 				return err
 			}
-			fCounter += 1
+			*fileCounter += 1
 		}
 
 		fInfo, err := entry.Info()

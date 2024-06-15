@@ -21,7 +21,11 @@ const (
 	ConfigMaxNumBackupsToKeep = 64
 )
 
-var cfgFile, sourcePath, destinationPath string
+var (
+	cfgFile, sourcePath, destinationPath string
+	numBackupsToKeep                     int
+	autoLaunch                           bool
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -67,11 +71,13 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&sourcePath, "source-path", lib.GetDefaultSourcePath(), "Define the source Noita save00 path")
 	rootCmd.PersistentFlags().StringVar(&destinationPath, "destination-path", lib.GetDefaultDestinationPath(), "Define the destination backup path")
 	rootCmd.PersistentFlags().IntVar(&numBackupsToKeep, "num-backups", 16, "Define the maximum number of backups to keep")
+	rootCmd.PersistentFlags().BoolVar(&autoLaunch, "auto-launch", false, "Auto-launch Noita after backup/restore operation")
 
 	commands := []string{
 		"source-path",
 		"destination-path",
 		"num-backups",
+		"auto-launch",
 	}
 
 	for _, cmd := range commands {
