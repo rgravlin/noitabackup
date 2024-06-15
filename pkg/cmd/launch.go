@@ -5,7 +5,7 @@ Copyright © 2024 Ryan Gravlin ryan.gravlin@gmail.com
 package cmd
 
 import (
-	"github.com/rgravlin/noitabackup/pkg/lib"
+	"github.com/rgravlin/noitabackup/pkg/internal"
 	"github.com/spf13/cobra"
 	"log"
 )
@@ -16,7 +16,7 @@ var launchCmd = &cobra.Command{
 	Short: "Launch the Noita game from Steam",
 	Long:  `Launches the Noita Steam game`,
 	Run: func(cmd *cobra.Command, args []string) {
-		err := lib.LaunchNoita(false)
+		err := internal.LaunchNoita(false)
 		if err != nil {
 			log.Printf("failed to launch noita: %v", err)
 		}

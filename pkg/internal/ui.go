@@ -1,4 +1,4 @@
-package lib
+package internal
 
 import (
 	"fmt"
@@ -28,7 +28,6 @@ var (
 	autoLaunch        = new(widget.Bool)
 	numBackups        = new(widget.Float)
 	autoLaunchChecked = false
-	phase             = stopped
 	list              = &widget.List{
 		List: layout.List{
 			Axis: layout.Vertical,
@@ -41,9 +40,18 @@ type (
 	C = layout.Context
 )
 
+type UI struct {
+	backup  *Backup
+	restore *Restore
+}
+
+func NewUI() *UI {
+	return &UI{}
+}
+
 // Run handles all the events and rendering for the application window.
 // It takes a *app.Window as a parameter and returns an error if any.
-func Run(window *app.Window) error {
+func (ui *UI) Run(window *app.Window) error {
 	theme := material.NewTheme()
 	var ops op.Ops
 
@@ -81,7 +89,7 @@ func Run(window *app.Window) error {
 			}
 
 			for restoreButton.Clicked(gtx) {
-				restore := NewRestore(
+				ui.restore = NewRestore(
 					"latest",
 					NewBackup(
 						true,
@@ -91,19 +99,18 @@ func Run(window *app.Window) error {
 						viper.GetString("destination-path"),
 					),
 				)
-				restore.RestoreNoita()
+				ui.restore.RestoreNoita()
 			}
 
 			for backupButton.Clicked(gtx) {
-				backup := NewBackup(
+				ui.backup = NewBackup(
 					true,
 					viper.GetBool("auto-launch"),
 					viper.GetInt("num-backups"),
 					viper.GetString("source-path"),
 					viper.GetString("destination-path"),
 				)
-				backup.BackupNoita()
-				// BackupNoita(true, viper.GetInt("num-backups"))
+				ui.backup.BackupNoita()
 			}
 
 			cl := clip.Rect{Max: e.Size}.Push(gtx.Ops)
@@ -137,11 +144,9 @@ func Run(window *app.Window) error {
 				},
 				func(gtx C) D {
 					in := layout.UniformInset(unit.Dp(8))
+
 					var loadFunc layout.FlexChild
-					switch phase {
-					case stopped:
-						loadFunc = layout.Rigid(layout.Spacer{Width: 56}.Layout)
-					case started:
+					if ui.isOperationRunning() {
 						loadFunc = layout.Rigid(func(gtx C) D {
 							return layout.Inset{
 								Top:    unit.Dp(4),
@@ -154,9 +159,10 @@ func Run(window *app.Window) error {
 								return material.Loader(theme).Layout(gtx)
 							})
 						})
-					default:
+					} else {
 						loadFunc = layout.Rigid(layout.Spacer{Width: 56}.Layout)
 					}
+
 					return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
 						layout.Rigid(func(gtx C) D {
 							return in.Layout(gtx, material.CheckBox(theme, autoLaunch, "Auto Launch").Layout)
@@ -183,4 +189,20 @@ func Run(window *app.Window) error {
 			e.Frame(gtx.Ops)
 		}
 	}
+}
+
+func (ui *UI) isOperationRunning() bool {
+	if ui.backup != nil {
+		if ui.backup.phase == started {
+			return true
+		}
+	}
+
+	if ui.restore != nil {
+		if ui.restore.backup.phase == started {
+			return true
+		}
+	}
+
+	return false
 }

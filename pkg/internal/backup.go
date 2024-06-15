@@ -1,4 +1,4 @@
-package lib
+package internal
 
 import (
 	"fmt"
@@ -69,7 +69,7 @@ func (b *Backup) backupNoita() {
 	curNumBackups, err := getNumBackups(b.dstPath)
 	if err != nil {
 		log.Printf("error getting backups: %v", err)
-		phase = stopped
+		b.phase = stopped
 		return
 	} else {
 		log.Printf("number of backups: %d", curNumBackups)
@@ -89,14 +89,14 @@ func (b *Backup) backupNoita() {
 		b.sortedBackupDirs, err = getBackupDirs(b.dstPath, TimeFormat)
 		if err != nil {
 			log.Printf("error getting backups: %v", err)
-			phase = stopped
+			b.phase = stopped
 			return
 		}
 
 		// clean backup directories to make room for this backup
 		if err := b.cleanBackups(); err != nil {
 			log.Printf("failure deleting backups: %v", err)
-			phase = stopped
+			b.phase = stopped
 			return
 		}
 	}
@@ -104,14 +104,14 @@ func (b *Backup) backupNoita() {
 	// create new backup path
 	if err := createIfNotExists(newBackupPath, 0755); err != nil {
 		log.Printf("cannot create destination path: %v", err)
-		phase = stopped
+		b.phase = stopped
 		return
 	}
 
 	// recursively copy source to destination
 	if err := copyDirectory(b.srcPath, newBackupPath, &b.dirCounter, &b.fileCounter); err != nil {
 		log.Printf("cannot copy source to destination: %v", err)
-		phase = stopped
+		b.phase = stopped
 		return
 	}
 

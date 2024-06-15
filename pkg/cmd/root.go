@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"gioui.org/app"
 	"gioui.org/unit"
-	"github.com/rgravlin/noitabackup/pkg/lib"
+	"github.com/rgravlin/noitabackup/pkg/internal"
 	"log"
 	"os"
 
@@ -42,7 +42,8 @@ backing up, restoring, and restarting Noita.  Includes both a GUI and command li
 				app.MaxSize(unit.Dp(640), unit.Dp(105)),
 				app.MinSize(unit.Dp(640), unit.Dp(105)),
 			)
-			err := lib.Run(window)
+			ui := internal.NewUI()
+			err := ui.Run(window)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -68,8 +69,8 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.noitabackup.yaml)")
-	rootCmd.PersistentFlags().StringVar(&sourcePath, "source-path", lib.GetDefaultSourcePath(), "Define the source Noita save00 path")
-	rootCmd.PersistentFlags().StringVar(&destinationPath, "destination-path", lib.GetDefaultDestinationPath(), "Define the destination backup path")
+	rootCmd.PersistentFlags().StringVar(&sourcePath, "source-path", internal.GetDefaultSourcePath(), "Define the source Noita save00 path")
+	rootCmd.PersistentFlags().StringVar(&destinationPath, "destination-path", internal.GetDefaultDestinationPath(), "Define the destination backup path")
 	rootCmd.PersistentFlags().IntVar(&numBackupsToKeep, "num-backups", 16, "Define the maximum number of backups to keep")
 	rootCmd.PersistentFlags().BoolVar(&autoLaunch, "auto-launch", false, "Auto-launch Noita after backup/restore operation")
 
