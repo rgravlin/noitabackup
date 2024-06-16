@@ -17,6 +17,7 @@ See each sub-command's help for details on how to use the generated script.
 ### Options inherited from parent commands
 
 ```
+      --auto-launch               Auto-launch Noita after backup/restore operation
       --config string             config file (default is $HOME/.noitabackup.yaml)
       --destination-path string   Define the destination backup path (default "C:\\Users\\User\\NoitaBackups")
       --num-backups int           Define the maximum number of backups to keep (default 16)
