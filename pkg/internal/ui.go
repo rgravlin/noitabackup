@@ -93,7 +93,7 @@ func (ui *UI) Run(window *app.Window) error {
 					"latest",
 					NewBackup(
 						true,
-						viper.GetBool("auto-launch"),
+						autoLaunchChecked,
 						viper.GetInt("num-backups"),
 						viper.GetString("source-path"),
 						viper.GetString("destination-path"),
@@ -105,7 +105,7 @@ func (ui *UI) Run(window *app.Window) error {
 			for backupButton.Clicked(gtx) {
 				ui.backup = NewBackup(
 					true,
-					viper.GetBool("auto-launch"),
+					autoLaunchChecked,
 					viper.GetInt("num-backups"),
 					viper.GetString("source-path"),
 					viper.GetString("destination-path"),

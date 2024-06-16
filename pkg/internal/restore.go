@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"log"
 	"os"
 	"slices"
@@ -73,20 +72,77 @@ func (r *Restore) restoreNoita() {
 	// process save00
 	// 1. delete save00.bak
 	// 2. rename save00 -> save00.bak
-	if err := processSave00(); err != nil {
+	if err := r.processSave00(); err != nil {
 		log.Printf("error processing save00: %v", err)
 		r.backup.phase = stopped
 		return
 	}
 
 	// restore specified (default latest) backup to destination
-	if err := restoreSave00(r.restoreFile, r.backup.dstPath, r.backup.sortedBackupDirs, r.backup.async, r.backup.autoLaunchChecked); err != nil {
+	if err := r.restoreSave00(); err != nil {
 		log.Printf("error restoring backup file to save00: %v", err)
 		r.backup.phase = stopped
 		return
+
 	}
 
 	r.backup.phase = stopped
+}
+
+func (r *Restore) restoreSave00() error {
+	// create destination directory
+	log.Printf("creating save00 directory")
+
+	// create directory
+	err := os.MkdirAll(r.backup.srcPath, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	// recursively copy latest directory to destination
+	latest := fmt.Sprintf("%s\\%s", r.backup.dstPath, r.backup.sortedBackupDirs[len(r.backup.sortedBackupDirs)-1].Format(TimeFormat))
+	log.Printf("copying latest backup %s to save00", latest)
+	var d, f int
+	if err := copyDirectory(latest, r.backup.srcPath, &d, &f); err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("successfully restored backup: %s", latest)
+
+	// launch noita after successful restore
+	if r.backup.autoLaunchChecked {
+		err = LaunchNoita(r.backup.async)
+		if err != nil {
+			log.Printf("failed to launch noita: %v", err)
+		}
+	}
+
+	return nil
+}
+
+func (r *Restore) deleteSave00Bak() error {
+	log.Printf("deleting save00.bak folder")
+	err := os.RemoveAll(fmt.Sprintf("%s%s", r.backup.srcPath, backupSuffix))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Restore) processSave00() error {
+	err := r.deleteSave00Bak()
+	if err != nil {
+		return err
+	}
+
+	log.Printf("renaming save00 to save00.bak")
+	err = os.Rename(r.backup.srcPath, fmt.Sprintf("%s%s", r.backup.srcPath, backupSuffix))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func convertTimeSliceToStrings(timeSlice []time.Time) []string {
@@ -95,68 +151,4 @@ func convertTimeSliceToStrings(timeSlice []time.Time) []string {
 		stringSlice = append(stringSlice, t.Format(TimeFormat))
 	}
 	return stringSlice
-}
-
-func deleteSave00Bak() error {
-	srcPath := viper.GetString("source-path")
-	log.Printf("deleting save00.bak folder")
-	err := os.RemoveAll(fmt.Sprintf("%s%s", srcPath, backupSuffix))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func processSave00() error {
-	srcPath := viper.GetString("source-path")
-
-	err := deleteSave00Bak()
-	if err != nil {
-		return err
-	}
-
-	log.Printf("renaming save00 to save00.bak")
-	err = os.Rename(srcPath, fmt.Sprintf("%s%s", srcPath, backupSuffix))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// TODO: make this a function of restore
-func restoreSave00(file, dstPath string, backupDirs []time.Time, async bool, autoLaunch bool) error {
-	// TODO: implement specified file restore
-	_ = file
-
-	// create destination directory
-	log.Printf("creating save00 directory")
-	srcPath := viper.GetString("source-path")
-
-	// create directory
-	err := os.MkdirAll(srcPath, os.ModePerm)
-	if err != nil {
-		return err
-	}
-
-	// recursively copy latest directory to destination
-	latest := fmt.Sprintf("%s\\%s", dstPath, backupDirs[len(backupDirs)-1].Format(TimeFormat))
-	log.Printf("copying latest backup %s to save00", latest)
-	var d, f int
-	if err := copyDirectory(latest, srcPath, &d, &f); err != nil {
-		log.Fatal(err)
-	}
-
-	log.Printf("successfully restored backup: %s", latest)
-
-	// launch noita after successful restore
-	if autoLaunch {
-		err = LaunchNoita(async)
-		if err != nil {
-			log.Printf("failed to launch noita: %v", err)
-		}
-	}
-
-	return nil
 }
