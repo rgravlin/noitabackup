@@ -33,9 +33,11 @@ func (r *Restore) RestoreNoita() {
 				r.restoreNoita()
 			}
 		} else {
+			r.backup.logRing.Append("operation already in progress")
 			log.Print("operation already in progress")
 		}
 	} else {
+		r.backup.logRing.Append("noita.exe cannot be running during a restore")
 		log.Print("noita.exe cannot be running during a restore")
 	}
 }
@@ -47,6 +49,7 @@ func (r *Restore) restoreNoita() {
 	// get sorted backup directories
 	r.backup.sortedBackupDirs, err = getBackupDirs(r.backup.dstPath, TimeFormat)
 	if err != nil {
+		r.backup.logRing.Append(fmt.Sprintf("failed to get backup dirs: %v", err))
 		log.Printf("failed to get backup dirs: %v", err)
 		r.backup.phase = stopped
 		return
@@ -54,6 +57,7 @@ func (r *Restore) restoreNoita() {
 
 	// protect against no backups
 	if len(r.backup.sortedBackupDirs) == 0 {
+		r.backup.logRing.Append("no backup dirs found, cannot restore")
 		log.Print("no backup dirs found, cannot restore")
 		r.backup.phase = stopped
 		return
@@ -63,6 +67,7 @@ func (r *Restore) restoreNoita() {
 	if r.restoreFile != "latest" {
 		backups := convertTimeSliceToStrings(r.backup.sortedBackupDirs)
 		if !slices.Contains(backups, r.restoreFile) {
+			r.backup.logRing.Append(fmt.Sprintf("backup %s not found in backup directory", r.restoreFile))
 			log.Printf("backup %s not found in backup directory", r.restoreFile)
 			r.backup.phase = stopped
 			return
@@ -73,6 +78,7 @@ func (r *Restore) restoreNoita() {
 	// 1. delete save00.bak
 	// 2. rename save00 -> save00.bak
 	if err := r.processSave00(); err != nil {
+		r.backup.logRing.Append(fmt.Sprintf("error processing save00: %v", err))
 		log.Printf("error processing save00: %v", err)
 		r.backup.phase = stopped
 		return
@@ -80,6 +86,7 @@ func (r *Restore) restoreNoita() {
 
 	// restore specified (default latest) backup to destination
 	if err := r.restoreSave00(); err != nil {
+		r.backup.logRing.Append(fmt.Sprintf("error restoring backup file to save00: %v", err))
 		log.Printf("error restoring backup file to save00: %v", err)
 		r.backup.phase = stopped
 		return
@@ -91,6 +98,7 @@ func (r *Restore) restoreNoita() {
 
 func (r *Restore) restoreSave00() error {
 	// create destination directory
+	r.backup.logRing.Append("creating save00 directory")
 	log.Printf("creating save00 directory")
 
 	// create directory
@@ -101,18 +109,22 @@ func (r *Restore) restoreSave00() error {
 
 	// recursively copy latest directory to destination
 	latest := fmt.Sprintf("%s\\%s", r.backup.dstPath, r.backup.sortedBackupDirs[len(r.backup.sortedBackupDirs)-1].Format(TimeFormat))
+	r.backup.logRing.Append(fmt.Sprintf("copying latest backup %s to save00", latest))
 	log.Printf("copying latest backup %s to save00", latest)
 	var d, f int
 	if err := copyDirectory(latest, r.backup.srcPath, &d, &f); err != nil {
-		log.Fatal(err)
+		r.backup.logRing.Append(fmt.Sprintf("error copying latest backup %s to save00: %v", latest, err))
+		log.Printf("error copying latest backup %s to save00: %v", latest, err)
 	}
 
+	r.backup.logRing.Append(fmt.Sprintf("successfully restored backup: %s", latest))
 	log.Printf("successfully restored backup: %s", latest)
 
 	// launch noita after successful restore
 	if r.backup.autoLaunchChecked {
 		err = LaunchNoita(r.backup.async)
 		if err != nil {
+			r.backup.logRing.Append(fmt.Sprintf("failed to launch noita: %v", err))
 			log.Printf("failed to launch noita: %v", err)
 		}
 	}
@@ -121,6 +133,7 @@ func (r *Restore) restoreSave00() error {
 }
 
 func (r *Restore) deleteSave00Bak() error {
+	r.backup.logRing.Append("deleting save00.bak folder")
 	log.Printf("deleting save00.bak folder")
 	err := os.RemoveAll(fmt.Sprintf("%s%s", r.backup.srcPath, backupSuffix))
 	if err != nil {
@@ -136,6 +149,7 @@ func (r *Restore) processSave00() error {
 		return err
 	}
 
+	r.backup.logRing.Append("renaming save00 to save00.bak")
 	log.Printf("renaming save00 to save00.bak")
 	err = os.Rename(r.backup.srcPath, fmt.Sprintf("%s%s", r.backup.srcPath, backupSuffix))
 	if err != nil {

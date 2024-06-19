@@ -39,10 +39,11 @@ backing up, restoring, and restarting Noita.  Includes both a GUI and command li
 			window := new(app.Window)
 			window.Option(
 				app.Title(appName),
-				app.MaxSize(unit.Dp(640), unit.Dp(105)),
-				app.MinSize(unit.Dp(640), unit.Dp(105)),
+				app.MaxSize(unit.Dp(640), unit.Dp(425)),
+				app.MinSize(unit.Dp(640), unit.Dp(425)),
 			)
 			ui := internal.NewUI()
+			ui.Logger.Append("init")
 			err := ui.Run(window)
 			if err != nil {
 				log.Fatal(err)

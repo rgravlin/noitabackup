@@ -5,7 +5,6 @@ import (
 	"gioui.org/app"
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/unit"
 	"gioui.org/widget"
@@ -21,6 +20,7 @@ const (
 )
 
 var (
+	logList           = list.List
 	exploreButton     = new(widget.Clickable)
 	launchButton      = new(widget.Clickable)
 	backupButton      = new(widget.Clickable)
@@ -43,10 +43,13 @@ type (
 type UI struct {
 	backup  *Backup
 	restore *Restore
+	Logger  *LogRing
 }
 
 func NewUI() *UI {
-	return &UI{}
+	return &UI{
+		Logger: NewLogRing(16),
+	}
 }
 
 // Run handles all the events and rendering for the application window.
@@ -71,12 +74,14 @@ func (ui *UI) Run(window *app.Window) error {
 
 			if autoLaunch.Update(gtx) {
 				autoLaunchChecked = !autoLaunchChecked
+				ui.Logger.Append(fmt.Sprintf("autolaunch set to %t", autoLaunchChecked))
 				log.Printf("autolaunch set to %t", autoLaunchChecked)
 			}
 
 			for exploreButton.Clicked(gtx) {
 				err := LaunchExplorer()
 				if err != nil {
+					ui.Logger.Append(fmt.Sprintf("error launching explorer: %v", err))
 					log.Printf("error launching explorer: %v", err)
 				}
 			}
@@ -84,6 +89,7 @@ func (ui *UI) Run(window *app.Window) error {
 			for launchButton.Clicked(gtx) {
 				err := LaunchNoita(true)
 				if err != nil {
+					ui.Logger.Append(fmt.Sprintf("error launching noita: %v", err))
 					log.Printf("failed to launch noita: %v", err)
 				}
 			}
@@ -99,6 +105,8 @@ func (ui *UI) Run(window *app.Window) error {
 						viper.GetString("destination-path"),
 					),
 				)
+				ui.restore.backup.logRing = ui.Logger
+				ui.Logger.Append("starting restore")
 				ui.restore.RestoreNoita()
 			}
 
@@ -110,10 +118,11 @@ func (ui *UI) Run(window *app.Window) error {
 					viper.GetString("source-path"),
 					viper.GetString("destination-path"),
 				)
+				ui.backup.logRing = ui.Logger
+				ui.Logger.Append("starting backup")
 				ui.backup.BackupNoita()
 			}
 
-			cl := clip.Rect{Max: e.Size}.Push(gtx.Ops)
 			// TODO: make this not run every frame!
 			if isNoitaRunning() {
 				paint.ColorOp{Color: color.NRGBA{A: 0xff, R: 0xff}}.Add(gtx.Ops)
@@ -179,12 +188,20 @@ func (ui *UI) Run(window *app.Window) error {
 						}),
 					)
 				},
+				func(gtx C) D {
+					return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
+						layout.Rigid(func(gtx C) D {
+							return logList.Layout(gtx, ui.Logger.Len(), func(gtx layout.Context, i int) D {
+								return layout.UniformInset(unit.Dp(1)).Layout(gtx, material.Label(theme, unit.Sp(14), ui.Logger.Print()[i]).Layout)
+							})
+						}),
+					)
+				},
 			}
 
 			material.List(theme, list).Layout(gtx, len(widgets), func(gtx C, i int) D {
 				return layout.UniformInset(unit.Dp(0)).Layout(gtx, widgets[i])
 			})
-			cl.Pop()
 
 			e.Frame(gtx.Ops)
 		}
