@@ -2,7 +2,6 @@ package internal
 
 import (
 	"container/ring"
-	"fmt"
 )
 
 type LogRing struct {
@@ -51,6 +50,6 @@ func (r *LogRing) Truncate() *LogRing {
 
 // Append sets a string to the current internal ring value, and then moves the ring pointer forward
 func (r *LogRing) Append(line string) {
-	r.ring.Value = fmt.Sprintf("%s", line)
+	r.ring.Value = line
 	r.ring = r.ring.Next()
 }
