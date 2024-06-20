@@ -2,6 +2,7 @@ package internal
 
 import (
 	"container/ring"
+	"log"
 )
 
 type LogRing struct {
@@ -14,7 +15,6 @@ func NewLogRing(length int) *LogRing {
 	}
 }
 
-// Len calculates the non-nil length of the internal ring
 func (r *LogRing) Len() int {
 	l := 0
 
@@ -28,7 +28,6 @@ func (r *LogRing) Len() int {
 	return l
 }
 
-// Print returns a slice of non-nil ring values
 func (r *LogRing) Print() []string {
 	var logStrings []string
 
@@ -42,14 +41,12 @@ func (r *LogRing) Print() []string {
 	return logStrings
 }
 
-// Truncate removes all the elements of the internal ring
-func (r *LogRing) Truncate() *LogRing {
-	r.ring.Unlink(r.ring.Len() - 1)
-	return r
-}
-
-// Append sets a string to the current internal ring value, and then moves the ring pointer forward
 func (r *LogRing) Append(line string) {
 	r.ring.Value = line
 	r.ring = r.ring.Next()
+}
+
+func (r *LogRing) LogAndAppend(line string) {
+	r.Append(line)
+	log.Println(line)
 }

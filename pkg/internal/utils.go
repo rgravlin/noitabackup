@@ -115,6 +115,7 @@ func copyFile(src, dst string) error {
 	if err != nil {
 		return err
 	}
+	// TODO: send the log to the UI as well
 	defer func(out *os.File) {
 		err := out.Close()
 		if err != nil {
@@ -187,16 +188,16 @@ func LaunchNoita(async bool) error {
 		if async {
 			err := cmd.Start()
 			if err != nil {
-				log.Printf("error running steam: %v", err)
+				return fmt.Errorf("error running steam: %v", err)
 			}
 		} else {
 			err := cmd.Run()
 			if err != nil {
-				log.Printf("error running steam: %v", err)
+				return fmt.Errorf("error running steam: %v", err)
 			}
 		}
 	} else {
-		log.Printf("noita.exe is already running")
+		return fmt.Errorf("noita.exe is already running")
 	}
 
 	return nil

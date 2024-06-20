@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"slices"
 	"time"
@@ -13,63 +12,58 @@ const (
 )
 
 type Restore struct {
-	restoreFile string
-	backup      *Backup
+	RestoreFile string
+	Backup      *Backup
 }
 
 func NewRestore(restoreFile string, backup *Backup) *Restore {
 	return &Restore{
-		restoreFile: restoreFile,
-		backup:      backup,
+		RestoreFile: restoreFile,
+		Backup:      backup,
 	}
 }
 
 func (r *Restore) RestoreNoita() {
 	if !isNoitaRunning() {
-		if r.backup.phase == stopped {
-			if r.backup.async {
+		if r.Backup.phase == stopped {
+			if r.Backup.async {
 				go r.restoreNoita()
 			} else {
 				r.restoreNoita()
 			}
 		} else {
-			r.backup.logRing.Append("operation already in progress")
-			log.Print("operation already in progress")
+			r.Backup.LogRing.LogAndAppend("operation already in progress")
 		}
 	} else {
-		r.backup.logRing.Append("noita.exe cannot be running during a restore")
-		log.Print("noita.exe cannot be running during a restore")
+		r.Backup.LogRing.LogAndAppend("noita.exe cannot be running during a restore")
 	}
 }
 
 func (r *Restore) restoreNoita() {
 	var err error
-	r.backup.phase = started
+	r.Backup.phase = started
 
-	// get sorted backup directories
-	r.backup.sortedBackupDirs, err = getBackupDirs(r.backup.dstPath, TimeFormat)
+	// get sorted Backup directories
+	r.Backup.sortedBackupDirs, err = getBackupDirs(r.Backup.dstPath, TimeFormat)
 	if err != nil {
-		r.backup.logRing.Append(fmt.Sprintf("failed to get backup dirs: %v", err))
-		log.Printf("failed to get backup dirs: %v", err)
-		r.backup.phase = stopped
+		r.Backup.LogRing.LogAndAppend(fmt.Sprintf("failed to get backup dirs: %v", err))
+		r.Backup.phase = stopped
 		return
 	}
 
-	// protect against no backups
-	if len(r.backup.sortedBackupDirs) == 0 {
-		r.backup.logRing.Append("no backup dirs found, cannot restore")
-		log.Print("no backup dirs found, cannot restore")
-		r.backup.phase = stopped
+	// protect against no Backups
+	if len(r.Backup.sortedBackupDirs) == 0 {
+		r.Backup.LogRing.LogAndAppend("no backup dirs found, cannot restore")
+		r.Backup.phase = stopped
 		return
 	}
 
-	// check the backup directory for the specified backup to restore
-	if r.restoreFile != "latest" {
-		backups := convertTimeSliceToStrings(r.backup.sortedBackupDirs)
-		if !slices.Contains(backups, r.restoreFile) {
-			r.backup.logRing.Append(fmt.Sprintf("backup %s not found in backup directory", r.restoreFile))
-			log.Printf("backup %s not found in backup directory", r.restoreFile)
-			r.backup.phase = stopped
+	// check the Backup directory for the specified Backup to restore
+	if r.RestoreFile != "latest" {
+		Backups := convertTimeSliceToStrings(r.Backup.sortedBackupDirs)
+		if !slices.Contains(Backups, r.RestoreFile) {
+			r.Backup.LogRing.LogAndAppend(fmt.Sprintf("backup %s not found in backup directory", r.RestoreFile))
+			r.Backup.phase = stopped
 			return
 		}
 	}
@@ -78,54 +72,47 @@ func (r *Restore) restoreNoita() {
 	// 1. delete save00.bak
 	// 2. rename save00 -> save00.bak
 	if err := r.processSave00(); err != nil {
-		r.backup.logRing.Append(fmt.Sprintf("error processing save00: %v", err))
-		log.Printf("error processing save00: %v", err)
-		r.backup.phase = stopped
+		r.Backup.LogRing.LogAndAppend(fmt.Sprintf("error processing save00: %v", err))
+		r.Backup.phase = stopped
 		return
 	}
 
-	// restore specified (default latest) backup to destination
+	// restore specified (default latest) Backup to destination
 	if err := r.restoreSave00(); err != nil {
-		r.backup.logRing.Append(fmt.Sprintf("error restoring backup file to save00: %v", err))
-		log.Printf("error restoring backup file to save00: %v", err)
-		r.backup.phase = stopped
+		r.Backup.LogRing.LogAndAppend(fmt.Sprintf("error restoring backup file to save00: %v", err))
+		r.Backup.phase = stopped
 		return
 
 	}
 
-	r.backup.phase = stopped
+	r.Backup.phase = stopped
 }
 
 func (r *Restore) restoreSave00() error {
 	// create destination directory
-	r.backup.logRing.Append("creating save00 directory")
-	log.Printf("creating save00 directory")
+	r.Backup.LogRing.LogAndAppend("creating save00 directory")
 
 	// create directory
-	err := os.MkdirAll(r.backup.srcPath, os.ModePerm)
+	err := os.MkdirAll(r.Backup.srcPath, os.ModePerm)
 	if err != nil {
 		return err
 	}
 
 	// recursively copy latest directory to destination
-	latest := fmt.Sprintf("%s\\%s", r.backup.dstPath, r.backup.sortedBackupDirs[len(r.backup.sortedBackupDirs)-1].Format(TimeFormat))
-	r.backup.logRing.Append(fmt.Sprintf("copying latest backup %s to save00", latest))
-	log.Printf("copying latest backup %s to save00", latest)
+	latest := fmt.Sprintf("%s\\%s", r.Backup.dstPath, r.Backup.sortedBackupDirs[len(r.Backup.sortedBackupDirs)-1].Format(TimeFormat))
+	r.Backup.LogRing.LogAndAppend(fmt.Sprintf("copying latest backup %s to save00", latest))
 	var d, f int
-	if err := copyDirectory(latest, r.backup.srcPath, &d, &f); err != nil {
-		r.backup.logRing.Append(fmt.Sprintf("error copying latest backup %s to save00: %v", latest, err))
-		log.Printf("error copying latest backup %s to save00: %v", latest, err)
+	if err := copyDirectory(latest, r.Backup.srcPath, &d, &f); err != nil {
+		r.Backup.LogRing.LogAndAppend(fmt.Sprintf("error copying latest backup %s to save00: %v", latest, err))
 	}
 
-	r.backup.logRing.Append(fmt.Sprintf("successfully restored backup: %s", latest))
-	log.Printf("successfully restored backup: %s", latest)
+	r.Backup.LogRing.LogAndAppend(fmt.Sprintf("successfully restored backup: %s", latest))
 
 	// launch noita after successful restore
-	if r.backup.autoLaunchChecked {
-		err = LaunchNoita(r.backup.async)
+	if r.Backup.autoLaunchChecked {
+		err = LaunchNoita(r.Backup.async)
 		if err != nil {
-			r.backup.logRing.Append(fmt.Sprintf("failed to launch noita: %v", err))
-			log.Printf("failed to launch noita: %v", err)
+			r.Backup.LogRing.LogAndAppend(fmt.Sprintf("failed to launch noita: %v", err))
 		}
 	}
 
@@ -133,9 +120,8 @@ func (r *Restore) restoreSave00() error {
 }
 
 func (r *Restore) deleteSave00Bak() error {
-	r.backup.logRing.Append("deleting save00.bak folder")
-	log.Printf("deleting save00.bak folder")
-	err := os.RemoveAll(fmt.Sprintf("%s%s", r.backup.srcPath, backupSuffix))
+	r.Backup.LogRing.LogAndAppend("deleting save00.bak folder")
+	err := os.RemoveAll(fmt.Sprintf("%s%s", r.Backup.srcPath, backupSuffix))
 	if err != nil {
 		return err
 	}
@@ -149,9 +135,8 @@ func (r *Restore) processSave00() error {
 		return err
 	}
 
-	r.backup.logRing.Append("renaming save00 to save00.bak")
-	log.Printf("renaming save00 to save00.bak")
-	err = os.Rename(r.backup.srcPath, fmt.Sprintf("%s%s", r.backup.srcPath, backupSuffix))
+	r.Backup.LogRing.LogAndAppend("renaming save00 to save00.bak")
+	err = os.Rename(r.Backup.srcPath, fmt.Sprintf("%s%s", r.Backup.srcPath, backupSuffix))
 	if err != nil {
 		return err
 	}

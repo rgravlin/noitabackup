@@ -11,7 +11,6 @@ import (
 	"gioui.org/widget/material"
 	"github.com/spf13/viper"
 	"image/color"
-	"log"
 )
 
 const (
@@ -41,14 +40,16 @@ type (
 )
 
 type UI struct {
-	backup  *Backup
-	restore *Restore
-	Logger  *LogRing
+	backup            *Backup
+	restore           *Restore
+	Logger            *LogRing
+	autoLaunchChecked bool
 }
 
-func NewUI() *UI {
+func NewUI(autoLaunch bool) *UI {
 	return &UI{
-		Logger: NewLogRing(16),
+		Logger:            NewLogRing(16),
+		autoLaunchChecked: autoLaunch,
 	}
 }
 
@@ -57,6 +58,7 @@ func NewUI() *UI {
 func (ui *UI) Run(window *app.Window) error {
 	theme := material.NewTheme()
 	var ops op.Ops
+	autoLaunch.Value, autoLaunchChecked = ui.autoLaunchChecked, ui.autoLaunchChecked
 
 	for {
 		switch e := window.Event().(type) {
@@ -74,23 +76,20 @@ func (ui *UI) Run(window *app.Window) error {
 
 			if autoLaunch.Update(gtx) {
 				autoLaunchChecked = !autoLaunchChecked
-				ui.Logger.Append(fmt.Sprintf("autolaunch set to %t", autoLaunchChecked))
-				log.Printf("autolaunch set to %t", autoLaunchChecked)
+				ui.Logger.LogAndAppend(fmt.Sprintf("autolaunch set to %t", autoLaunchChecked))
 			}
 
 			for exploreButton.Clicked(gtx) {
 				err := LaunchExplorer()
 				if err != nil {
-					ui.Logger.Append(fmt.Sprintf("error launching explorer: %v", err))
-					log.Printf("error launching explorer: %v", err)
+					ui.Logger.LogAndAppend(fmt.Sprintf("error launching explorer: %v", err))
 				}
 			}
 
 			for launchButton.Clicked(gtx) {
 				err := LaunchNoita(true)
 				if err != nil {
-					ui.Logger.Append(fmt.Sprintf("error launching noita: %v", err))
-					log.Printf("failed to launch noita: %v", err)
+					ui.Logger.LogAndAppend(fmt.Sprintf("error launching noita: %v", err))
 				}
 			}
 
@@ -105,8 +104,8 @@ func (ui *UI) Run(window *app.Window) error {
 						viper.GetString("destination-path"),
 					),
 				)
-				ui.restore.backup.logRing = ui.Logger
-				ui.Logger.Append("starting restore")
+				ui.restore.Backup.LogRing = ui.Logger
+				ui.Logger.LogAndAppend("starting restore")
 				ui.restore.RestoreNoita()
 			}
 
@@ -118,8 +117,8 @@ func (ui *UI) Run(window *app.Window) error {
 					viper.GetString("source-path"),
 					viper.GetString("destination-path"),
 				)
-				ui.backup.logRing = ui.Logger
-				ui.Logger.Append("starting backup")
+				ui.backup.LogRing = ui.Logger
+				ui.Logger.LogAndAppend("starting backup")
 				ui.backup.BackupNoita()
 			}
 
@@ -216,7 +215,7 @@ func (ui *UI) isOperationRunning() bool {
 	}
 
 	if ui.restore != nil {
-		if ui.restore.backup.phase == started {
+		if ui.restore.Backup.phase == started {
 			return true
 		}
 	}
