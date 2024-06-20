@@ -48,5 +48,5 @@ func (r *LogRing) Append(line string) {
 
 func (r *LogRing) LogAndAppend(line string) {
 	r.Append(line)
-	log.Printf(line)
+	log.Println(line)
 }
