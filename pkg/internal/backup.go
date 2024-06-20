@@ -146,6 +146,10 @@ func (b *Backup) reportStop() {
 }
 
 func (b *Backup) cleanBackups() error {
+	if b.maxBackups <= 0 {
+		return fmt.Errorf("max backups must be greater than zero")
+	}
+
 	totalBackups := len(b.sortedBackupDirs)
 	totalToRemove := totalBackups - (b.maxBackups - 1)
 

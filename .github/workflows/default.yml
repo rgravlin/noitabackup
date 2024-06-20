@@ -66,4 +66,4 @@ jobs:
 
       - name: Test with the Go CLI
         if: steps.go-changes.outputs.src == 'true'
-        run: go test
+        run: go test ./... -v
