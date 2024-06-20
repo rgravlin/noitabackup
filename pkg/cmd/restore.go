@@ -29,6 +29,7 @@ to save00.bak.  It then restores the latest save file to the save00 directory.`,
 				viper.GetString("destination-path"),
 			),
 		)
+		restore.Backup.LogRing = internal.NewLogRing(1)
 		restore.RestoreNoita()
 	},
 }
