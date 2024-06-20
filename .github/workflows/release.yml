@@ -44,7 +44,7 @@ jobs:
           path: noitabackup*.exe
 
       - name: Test with the Go CLI
-        run: go test
+        run: go test ./... -v
 
   tag-and-release:
     needs: build
