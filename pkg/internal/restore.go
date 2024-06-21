@@ -39,6 +39,7 @@ func (r *Restore) RestoreNoita() {
 	}
 }
 
+// TODO: This must return an error for testing
 func (r *Restore) restoreNoita() {
 	var err error
 	r.Backup.phase = started

@@ -38,6 +38,7 @@ func NewBackup(async, autoLaunchChecked bool, maxBackups int, srcPath, dstPath s
 		maxBackups:        maxBackups,
 		srcPath:           srcPath,
 		dstPath:           dstPath,
+		LogRing:           NewLogRing(1),
 	}
 }
 
@@ -57,6 +58,7 @@ func (b *Backup) BackupNoita() {
 	}
 }
 
+// TODO: This must return an error for testing
 func (b *Backup) backupNoita() {
 	t := time.Now()
 	b.timestamp = t

@@ -25,7 +25,6 @@ through the environmental variable CONFIG_NOITA_DST_PATH.`,
 			viper.GetString("source-path"),
 			viper.GetString("destination-path"),
 		)
-		backup.LogRing = internal.NewLogRing(1)
 		backup.BackupNoita()
 	},
 }
