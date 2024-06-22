@@ -24,9 +24,11 @@ var (
 	launchButton      = new(widget.Clickable)
 	backupButton      = new(widget.Clickable)
 	restoreButton     = new(widget.Clickable)
+	debugLog          = new(widget.Bool)
 	autoLaunch        = new(widget.Bool)
 	numBackups        = new(widget.Float)
 	autoLaunchChecked = false
+	debugLogChecked   = false
 	list              = &widget.List{
 		List: layout.List{
 			Axis: layout.Vertical,
@@ -73,6 +75,11 @@ func (ui *UI) Run(window *app.Window) error {
 			// 	app.MinSize(unit.Dp(640), unit.Dp(105)),
 			// )
 			numBackups.Value = float32(viper.GetInt("num-backups")) / ConfigMaxNumBackupsToKeep
+
+			if debugLog.Update(gtx) {
+				debugLogChecked = !debugLogChecked
+				ui.Logger.LogAndAppend(fmt.Sprintf("debug log set to %t", debugLogChecked))
+			}
 
 			if autoLaunch.Update(gtx) {
 				autoLaunchChecked = !autoLaunchChecked
