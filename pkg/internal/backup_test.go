@@ -1,16 +1,16 @@
 package internal
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
 
 const (
 	TestBackupPath = "test_backup_path"
-	TestSourcePath = "test_source_path"
+	TestSourcePath = "test_source_path\\save00"
 )
 
 type Node struct {
@@ -87,10 +87,10 @@ func createMockBackupDirs(t *testing.T) []time.Time {
 
 func TestRestore_RestoreNoita(t *testing.T) {
 	// create a mock source save00 directory structure
-	if err := createMockSourceDir(t); err != nil {
+	if err := newNoitaSourceDirs(); err != nil {
 		t.Fatal(err)
 	}
-	if err := createMockBackupDir(t); err != nil {
+	if err := newNoitaBackupDirs(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -105,7 +105,7 @@ func TestRestore_RestoreNoita(t *testing.T) {
 	restore.restoreNoita()
 
 	// cleanup
-	if err := os.RemoveAll(TestSourcePath); err != nil {
+	if err := os.RemoveAll(strings.Split(TestSourcePath, "\\")[0]); err != nil {
 		t.Fatal(err)
 	}
 
@@ -114,84 +114,67 @@ func TestRestore_RestoreNoita(t *testing.T) {
 	}
 }
 
-func createMockBackupDir(t *testing.T) error {
-	t.Helper()
-	tree := DirectoryTree{
-		Root: &Node{
-			Name: TestBackupPath,
-			Children: []*Node{
-				{
-					Name: fmt.Sprintf("%s", time.Now().Format(TimeFormat)),
-					Children: []*Node{
-						{
-							Name: "world",
-						},
-						{
-							Name: "persistent",
-							Children: []*Node{
-								{Name: "bones"},
-								{Name: "bones_new"},
-								{Name: "flags"},
-								{Name: "orbs_new"},
-							},
-						},
-						{
-							Name: "stats",
-							Children: []*Node{
-								{Name: "sessions"},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	if err := tree.Root.createDirectories(""); err != nil {
+func newNoitaSourceDirs() error {
+	if err := newNoitaSourceTree().Root.createDirectories(""); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func createMockSourceDir(t *testing.T) error {
-	t.Helper()
-	tree := DirectoryTree{
+func newNoitaBackupDirs() error {
+	if err := newNoitaBackupTree().Root.createDirectories(""); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func newNoitaSourceTree() *DirectoryTree {
+	return &DirectoryTree{
 		Root: &Node{
-			Name: TestSourcePath,
+			Name:     TestSourcePath,
+			Children: newNoitaDirNode("save00"),
+		},
+	}
+}
+
+func newNoitaBackupTree() *DirectoryTree {
+	return &DirectoryTree{
+		Root: &Node{
+			Name:     TestBackupPath,
+			Children: newNoitaDirNode(time.Now().Format(TimeFormat)),
+		},
+	}
+
+}
+
+func newNoitaDirNode(name string) []*Node {
+	return []*Node{
+		{
+			Name: name,
 			Children: []*Node{
 				{
-					Name: "save00",
+					Name: "world",
+				},
+				{
+					Name: "persistent",
 					Children: []*Node{
-						{
-							Name: "world",
-						},
-						{
-							Name: "persistent",
-							Children: []*Node{
-								{Name: "bones"},
-								{Name: "bones_new"},
-								{Name: "flags"},
-								{Name: "orbs_new"},
-							},
-						},
-						{
-							Name: "stats",
-							Children: []*Node{
-								{Name: "sessions"},
-							},
-						},
+						{Name: "bones"},
+						{Name: "bones_new"},
+						{Name: "flags"},
+						{Name: "orbs_new"},
+					},
+				},
+				{
+					Name: "stats",
+					Children: []*Node{
+						{Name: "sessions"},
 					},
 				},
 			},
 		},
 	}
-
-	if err := tree.Root.createDirectories(""); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (n *Node) createDirectories(path string) error {
