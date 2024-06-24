@@ -16,15 +16,20 @@ import (
 const (
 	stopped int = iota
 	started
+	DefaultMinHeight = 155
+	DefaultMaxHeight = 580
+	DefaultWidth     = 640
 )
 
 var (
+	debugLogListFunc  = func(gtx C) D { return layout.Spacer{Width: 0}.Layout(gtx) }
 	logList           = list.List
 	exploreButton     = new(widget.Clickable)
 	launchButton      = new(widget.Clickable)
 	backupButton      = new(widget.Clickable)
 	restoreButton     = new(widget.Clickable)
 	debugLog          = new(widget.Bool)
+	debugHeight       = 155
 	autoLaunch        = new(widget.Bool)
 	numBackups        = new(widget.Float)
 	autoLaunchChecked = false
@@ -77,7 +82,34 @@ func (ui *UI) Run(window *app.Window) error {
 			numBackups.Value = float32(viper.GetInt("num-backups")) / ConfigMaxNumBackupsToKeep
 
 			if debugLog.Update(gtx) {
+				switch debugHeight {
+				case DefaultMaxHeight:
+					debugHeight = DefaultMinHeight
+				case DefaultMinHeight:
+					debugHeight = DefaultMaxHeight
+				default:
+				}
+				window.Option(
+					app.MaxSize(unit.Dp(DefaultWidth), unit.Dp(debugHeight)),
+					app.MinSize(unit.Dp(DefaultWidth), unit.Dp(debugHeight)),
+				)
 				debugLogChecked = !debugLogChecked
+
+				if debugLogChecked {
+					debugLogListFunc = func(gtx C) D {
+						return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
+							layout.Rigid(func(gtx C) D {
+								return logList.Layout(gtx, ui.Logger.Len(), func(gtx layout.Context, i int) D {
+									return layout.UniformInset(unit.Dp(1)).Layout(gtx, material.Label(theme, unit.Sp(14), ui.Logger.Print()[i]).Layout)
+								})
+							}),
+						)
+					}
+				} else {
+					debugLogListFunc = func(gtx C) D {
+						return layout.Spacer{Width: 0}.Layout(gtx)
+					}
+				}
 				ui.Logger.LogAndAppend(fmt.Sprintf("debug log set to %t", debugLogChecked))
 			}
 
@@ -195,14 +227,14 @@ func (ui *UI) Run(window *app.Window) error {
 					)
 				},
 				func(gtx C) D {
+					in := layout.UniformInset(unit.Dp(8))
 					return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
 						layout.Rigid(func(gtx C) D {
-							return logList.Layout(gtx, ui.Logger.Len(), func(gtx layout.Context, i int) D {
-								return layout.UniformInset(unit.Dp(1)).Layout(gtx, material.Label(theme, unit.Sp(14), ui.Logger.Print()[i]).Layout)
-							})
+							return in.Layout(gtx, material.CheckBox(theme, debugLog, "Debug Log").Layout)
 						}),
 					)
 				},
+				debugLogListFunc,
 			}
 
 			material.List(theme, list).Layout(gtx, len(widgets), func(gtx C, i int) D {

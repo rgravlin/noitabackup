@@ -3,6 +3,11 @@ package internal
 import (
 	"container/ring"
 	"log"
+	"time"
+)
+
+const (
+	LogRingTimeFormat = "2006-01-02 15:04:05"
 )
 
 type LogRing struct {
@@ -42,7 +47,7 @@ func (r *LogRing) Print() []string {
 }
 
 func (r *LogRing) Append(line string) {
-	r.ring.Value = line
+	r.ring.Value = "[" + time.Now().Format(LogRingTimeFormat) + "]: " + line
 	r.ring = r.ring.Next()
 }
 
