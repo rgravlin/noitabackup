@@ -46,20 +46,19 @@ func (b *Backup) BackupNoita() {
 	if !isNoitaRunning() {
 		if b.phase == stopped {
 			if b.async {
-				go b.backupNoita()
+				go func() { _ = b.backupNoita() }()
 			} else {
-				b.backupNoita()
+				_ = b.backupNoita()
 			}
 		} else {
-			b.LogRing.LogAndAppend("operation already in progress")
+			b.LogRing.LogAndAppend(ErrOperationAlreadyInProgress)
 		}
 	} else {
-		b.LogRing.LogAndAppend("noita.exe cannot be running to backup")
+		b.LogRing.LogAndAppend(fmt.Sprintf("%s %s", ErrNoitaRunning, ErrDuringBackup))
 	}
 }
 
-// TODO: This must return an error for testing
-func (b *Backup) backupNoita() {
+func (b *Backup) backupNoita() error {
 	t := time.Now()
 	b.timestamp = t
 	b.phase = started
@@ -70,11 +69,11 @@ func (b *Backup) backupNoita() {
 	// get current number of backups
 	curNumBackups, err := getNumBackups(b.dstPath)
 	if err != nil {
-		b.LogRing.LogAndAppend(fmt.Sprintf("error getting backups: %v", err))
+		b.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrErrorGettingBackups, err))
 		b.phase = stopped
-		return
+		return err
 	} else {
-		b.LogRing.LogAndAppend(fmt.Sprintf("number of backups: %d", curNumBackups))
+		b.LogRing.LogAndAppend(fmt.Sprintf("%s: %d", InfoNumberOfBackups, curNumBackups))
 	}
 
 	// protect against invalid maxBackups
@@ -84,37 +83,37 @@ func (b *Backup) backupNoita() {
 
 	// clean up backups
 	if curNumBackups >= b.maxBackups {
-		b.LogRing.LogAndAppend("maximum backup threshold reached")
+		b.LogRing.LogAndAppend(ErrMaxBackupsExceeded)
 
 		// get and sort backup directories
 		// oldest are first in the sorted slice
 		b.sortedBackupDirs, err = getBackupDirs(b.dstPath, TimeFormat)
 		if err != nil {
-			b.LogRing.LogAndAppend(fmt.Sprintf("error getting backups: %v", err))
+			b.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrErrorGettingBackups, err))
 			b.phase = stopped
-			return
+			return err
 		}
 
 		// clean backup directories to make room for this backup
 		if err := b.cleanBackups(); err != nil {
-			b.LogRing.LogAndAppend(fmt.Sprintf("failure deleting backups: %v", err))
+			b.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrFailureDeletingBackups, err))
 			b.phase = stopped
-			return
+			return err
 		}
 	}
 
 	// create new backup path
 	if err := createIfNotExists(newBackupPath, 0755); err != nil {
-		b.LogRing.LogAndAppend(fmt.Sprintf("cannot create destination path: %v", err))
+		b.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrCannotCreateDestination, err))
 		b.phase = stopped
-		return
+		return err
 	}
 
 	// recursively copy source to destination
 	if err := copyDirectory(b.srcPath, newBackupPath, &b.dirCounter, &b.fileCounter); err != nil {
-		b.LogRing.LogAndAppend(fmt.Sprintf("cannot copy source to destination: %v", err))
+		b.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrSourceDestination, err))
 		b.phase = stopped
-		return
+		return err
 	}
 
 	b.reportStop()
@@ -123,9 +122,11 @@ func (b *Backup) backupNoita() {
 	if b.autoLaunchChecked {
 		err = LaunchNoita(b.async)
 		if err != nil {
-			b.LogRing.LogAndAppend(fmt.Sprintf("failed to launch noita: %v", err))
+			b.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrFailedToLaunch, err))
 		}
 	}
+
+	return nil
 }
 
 func (b *Backup) resetPhase() {
@@ -135,21 +136,21 @@ func (b *Backup) resetPhase() {
 }
 
 func (b *Backup) reportStart() {
-	b.LogRing.LogAndAppend(fmt.Sprintf("timestamp: %s", b.timestamp))
-	b.LogRing.LogAndAppend(fmt.Sprintf("source: %s", b.srcPath))
-	b.LogRing.LogAndAppend(fmt.Sprintf("destination: %s", fmt.Sprintf("%s\\%s", b.dstPath, b.timestamp.Format(TimeFormat))))
+	b.LogRing.LogAndAppend(fmt.Sprintf("%s: %s", InfoTimestamp, b.timestamp.Format(LogRingTimeFormat)))
+	b.LogRing.LogAndAppend(fmt.Sprintf("%s: %s", InfoSource, b.srcPath))
+	b.LogRing.LogAndAppend(fmt.Sprintf("%s: %s", InfoDestination, fmt.Sprintf("%s\\%s", b.dstPath, b.timestamp.Format(TimeFormat))))
 }
 
 func (b *Backup) reportStop() {
-	b.LogRing.LogAndAppend(fmt.Sprintf("timestamp: %s", time.Now()))
-	b.LogRing.LogAndAppend(fmt.Sprintf("total time: %s", time.Since(b.timestamp)))
-	b.LogRing.LogAndAppend(fmt.Sprintf("total dirs copied: %d", b.dirCounter))
-	b.LogRing.LogAndAppend(fmt.Sprintf("total files copied: %d", b.fileCounter))
+	b.LogRing.LogAndAppend(fmt.Sprintf("%s: %s", InfoTimestamp, time.Now().Format(LogRingTimeFormat)))
+	b.LogRing.LogAndAppend(fmt.Sprintf("%s: %s", InfoTotalTime, time.Since(b.timestamp)))
+	b.LogRing.LogAndAppend(fmt.Sprintf("%s: %d", InfoTotalDirCopied, b.dirCounter))
+	b.LogRing.LogAndAppend(fmt.Sprintf("%s: %d", InfoTotalFileCopied, b.fileCounter))
 }
 
 func (b *Backup) cleanBackups() error {
 	if b.maxBackups <= 0 {
-		return fmt.Errorf("max backups must be greater than zero")
+		return fmt.Errorf(ErrInvalidBackups)
 	}
 
 	totalBackups := len(b.sortedBackupDirs)
@@ -157,7 +158,7 @@ func (b *Backup) cleanBackups() error {
 
 	for i := 0; i < totalToRemove; i++ {
 		folder := fmt.Sprintf("%s\\%s", b.dstPath, b.sortedBackupDirs[i].Format(TimeFormat))
-		b.LogRing.LogAndAppend(fmt.Sprintf("removing backup folder: %s", folder))
+		b.LogRing.LogAndAppend(fmt.Sprintf("%s: %s", InfoRemovingBackup, folder))
 		err := os.RemoveAll(folder)
 		if err != nil {
 			return err

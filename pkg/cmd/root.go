@@ -39,8 +39,8 @@ backing up, restoring, and restarting Noita.  Includes both a GUI and command li
 			window := new(app.Window)
 			window.Option(
 				app.Title(appName),
-				app.MaxSize(unit.Dp(640), unit.Dp(425)),
-				app.MinSize(unit.Dp(640), unit.Dp(425)),
+				app.MaxSize(unit.Dp(internal.DefaultWidth), unit.Dp(internal.DefaultMinHeight)),
+				app.MinSize(unit.Dp(internal.DefaultWidth), unit.Dp(internal.DefaultMinHeight)),
 			)
 			ui := internal.NewUI(viper.GetBool("auto-launch"))
 			err := ui.Run(window)
