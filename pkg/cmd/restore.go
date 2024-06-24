@@ -23,10 +23,10 @@ to save00.bak.  It then restores the latest save file to the save00 directory.`,
 			"latest",
 			internal.NewBackup(
 				false,
-				viper.GetBool("auto-launch"),
-				viper.GetInt("num-backups"),
-				viper.GetString("source-path"),
-				viper.GetString("destination-path"),
+				viper.GetBool(internal.ViperAutoLaunch),
+				viper.GetInt(internal.ViperNumBackups),
+				viper.GetString(internal.ViperSourcePath),
+				viper.GetString(internal.ViperDestinationPath),
 			),
 		)
 		restore.RestoreNoita()
