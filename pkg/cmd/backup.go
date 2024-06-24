@@ -20,10 +20,10 @@ through the environmental variable CONFIG_NOITA_DST_PATH.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		backup := internal.NewBackup(
 			false,
-			viper.GetBool("auto-launch"),
-			viper.GetInt("num-backups"),
-			viper.GetString("source-path"),
-			viper.GetString("destination-path"),
+			viper.GetBool(internal.ViperAutoLaunch),
+			viper.GetInt(internal.ViperNumBackups),
+			viper.GetString(internal.ViperSourcePath),
+			viper.GetString(internal.ViperDestinationPath),
 		)
 		backup.BackupNoita()
 	},

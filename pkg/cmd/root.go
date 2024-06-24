@@ -42,7 +42,7 @@ backing up, restoring, and restarting Noita.  Includes both a GUI and command li
 				app.MaxSize(unit.Dp(internal.DefaultWidth), unit.Dp(internal.DefaultMinHeight)),
 				app.MinSize(unit.Dp(internal.DefaultWidth), unit.Dp(internal.DefaultMinHeight)),
 			)
-			ui := internal.NewUI(viper.GetBool("auto-launch"))
+			ui := internal.NewUI(viper.GetBool(internal.ViperAutoLaunch))
 			err := ui.Run(window)
 			if err != nil {
 				log.Fatal(err)
@@ -69,16 +69,16 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.noitabackup.yaml)")
-	rootCmd.PersistentFlags().StringVar(&sourcePath, "source-path", internal.GetDefaultSourcePath(), "Define the source Noita save00 path")
-	rootCmd.PersistentFlags().StringVar(&destinationPath, "destination-path", internal.GetDefaultDestinationPath(), "Define the destination backup path")
-	rootCmd.PersistentFlags().IntVar(&numBackupsToKeep, "num-backups", 16, "Define the maximum number of backups to keep")
-	rootCmd.PersistentFlags().BoolVar(&autoLaunch, "auto-launch", false, "Auto-launch Noita after backup/restore operation")
+	rootCmd.PersistentFlags().StringVar(&sourcePath, internal.ViperSourcePath, internal.GetDefaultSourcePath(), "Define the source Noita save00 path")
+	rootCmd.PersistentFlags().StringVar(&destinationPath, internal.ViperDestinationPath, internal.GetDefaultDestinationPath(), "Define the destination backup path")
+	rootCmd.PersistentFlags().IntVar(&numBackupsToKeep, internal.ViperNumBackups, 16, "Define the maximum number of backups to keep")
+	rootCmd.PersistentFlags().BoolVar(&autoLaunch, internal.ViperAutoLaunch, false, "Auto-launch Noita after backup/restore operation")
 
 	commands := []string{
-		"source-path",
-		"destination-path",
-		"num-backups",
-		"auto-launch",
+		internal.ViperSourcePath,
+		internal.ViperDestinationPath,
+		internal.ViperNumBackups,
+		internal.ViperAutoLaunch,
 	}
 
 	for _, cmd := range commands {

@@ -79,7 +79,7 @@ func (ui *UI) Run(window *app.Window) error {
 			// 	app.MaxSize(unit.Dp(640), unit.Dp(105)),
 			// 	app.MinSize(unit.Dp(640), unit.Dp(105)),
 			// )
-			numBackups.Value = float32(viper.GetInt("num-backups")) / ConfigMaxNumBackupsToKeep
+			numBackups.Value = float32(viper.GetInt(ViperNumBackups)) / ConfigMaxNumBackupsToKeep
 
 			if debugLog.Update(gtx) {
 				switch debugHeight {
@@ -110,41 +110,41 @@ func (ui *UI) Run(window *app.Window) error {
 						return layout.Spacer{Width: 0}.Layout(gtx)
 					}
 				}
-				ui.Logger.LogAndAppend(fmt.Sprintf("debug log set to %t", debugLogChecked))
+				ui.Logger.LogAndAppend(fmt.Sprintf("%s %t", InfoDebugLogSet, debugLogChecked))
 			}
 
 			if autoLaunch.Update(gtx) {
 				autoLaunchChecked = !autoLaunchChecked
-				ui.Logger.LogAndAppend(fmt.Sprintf("autolaunch set to %t", autoLaunchChecked))
+				ui.Logger.LogAndAppend(fmt.Sprintf("%s %t", InfoAutoLaunchSet, autoLaunchChecked))
 			}
 
 			for exploreButton.Clicked(gtx) {
 				err := LaunchExplorer()
 				if err != nil {
-					ui.Logger.LogAndAppend(fmt.Sprintf("error launching explorer: %v", err))
+					ui.Logger.LogAndAppend(fmt.Sprintf("%s: %v", ErrLaunchingExplorer, err))
 				}
 			}
 
 			for launchButton.Clicked(gtx) {
 				err := LaunchNoita(true)
 				if err != nil {
-					ui.Logger.LogAndAppend(fmt.Sprintf("error launching noita: %v", err))
+					ui.Logger.LogAndAppend(fmt.Sprintf("%s: %v", ErrLaunchingNoita, err))
 				}
 			}
 
 			for restoreButton.Clicked(gtx) {
 				ui.restore = NewRestore(
-					"latest",
+					StrLatest,
 					NewBackup(
 						true,
 						autoLaunchChecked,
-						viper.GetInt("num-backups"),
-						viper.GetString("source-path"),
-						viper.GetString("destination-path"),
+						viper.GetInt(ViperNumBackups),
+						viper.GetString(ViperSourcePath),
+						viper.GetString(ViperDestinationPath),
 					),
 				)
 				ui.restore.Backup.LogRing = ui.Logger
-				ui.Logger.LogAndAppend("starting restore")
+				ui.Logger.LogAndAppend(InfoStartingRestore)
 				ui.restore.RestoreNoita()
 			}
 
@@ -152,12 +152,12 @@ func (ui *UI) Run(window *app.Window) error {
 				ui.backup = NewBackup(
 					true,
 					autoLaunchChecked,
-					viper.GetInt("num-backups"),
-					viper.GetString("source-path"),
-					viper.GetString("destination-path"),
+					viper.GetInt(ViperNumBackups),
+					viper.GetString(ViperSourcePath),
+					viper.GetString(ViperDestinationPath),
 				)
 				ui.backup.LogRing = ui.Logger
-				ui.Logger.LogAndAppend("starting backup")
+				ui.Logger.LogAndAppend(InfoStartingBackup)
 				ui.backup.BackupNoita()
 			}
 
@@ -175,16 +175,16 @@ func (ui *UI) Run(window *app.Window) error {
 					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
 							layout.Rigid(func(gtx C) D {
-								return in.Layout(gtx, material.Button(theme, launchButton, "Launch Noita").Layout)
+								return in.Layout(gtx, material.Button(theme, launchButton, BtnLaunch).Layout)
 							}),
 							layout.Rigid(func(gtx C) D {
-								return in.Layout(gtx, material.Button(theme, backupButton, "Backup Noita").Layout)
+								return in.Layout(gtx, material.Button(theme, backupButton, BtnBackup).Layout)
 							}),
 							layout.Rigid(func(gtx C) D {
-								return in.Layout(gtx, material.Button(theme, restoreButton, "Restore Noita").Layout)
+								return in.Layout(gtx, material.Button(theme, restoreButton, BtnRestore).Layout)
 							}),
 							layout.Rigid(func(gtx C) D {
-								return in.Layout(gtx, material.Button(theme, exploreButton, "Explore Backups").Layout)
+								return in.Layout(gtx, material.Button(theme, exploreButton, BtnExplore).Layout)
 							}),
 						)
 					})
@@ -212,11 +212,11 @@ func (ui *UI) Run(window *app.Window) error {
 
 					return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
 						layout.Rigid(func(gtx C) D {
-							return in.Layout(gtx, material.CheckBox(theme, autoLaunch, "Auto Launch").Layout)
+							return in.Layout(gtx, material.CheckBox(theme, autoLaunch, ChkAutoLaunch).Layout)
 						}),
 						loadFunc,
 						layout.Rigid(func(gtx C) D {
-							return in.Layout(gtx, material.Label(theme, theme.TextSize, "Number backups to keep").Layout)
+							return in.Layout(gtx, material.Label(theme, theme.TextSize, SldNumBackupsToKeep).Layout)
 						}),
 						layout.Flexed(1, material.Slider(theme, numBackups).Layout),
 						layout.Rigid(func(gtx C) D {
@@ -230,7 +230,7 @@ func (ui *UI) Run(window *app.Window) error {
 					in := layout.UniformInset(unit.Dp(8))
 					return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
 						layout.Rigid(func(gtx C) D {
-							return in.Layout(gtx, material.CheckBox(theme, debugLog, "Debug Log").Layout)
+							return in.Layout(gtx, material.CheckBox(theme, debugLog, ChkDebugLog).Layout)
 						}),
 					)
 				},

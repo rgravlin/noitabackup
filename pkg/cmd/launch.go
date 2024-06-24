@@ -18,7 +18,7 @@ var launchCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		err := internal.LaunchNoita(false)
 		if err != nil {
-			log.Printf("failed to launch noita: %v", err)
+			log.Printf("%s: %v", internal.ErrLaunchingNoita, err)
 		}
 	},
 }
