@@ -19,6 +19,8 @@ const (
 	DefaultMinHeight = 155
 	DefaultMaxHeight = 580
 	DefaultWidth     = 640
+	ErrorWidth       = DefaultWidth
+	ErrorHeight      = 280
 )
 
 var (

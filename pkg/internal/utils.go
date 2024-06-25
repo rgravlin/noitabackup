@@ -25,6 +25,7 @@ const (
 	ConfigAppData                        = "APPDATA"
 	ConfigOverrideSrcPath                = "CONFIG_NOITA_SRC_PATH"
 	ConfigOverrideDstPath                = "CONFIG_NOITA_DST_PATH"
+	ConfigOverrideSteamPath              = "CONFIG_NOITA_STEAM_PATH"
 	Mode0755                 os.FileMode = 0755
 )
 
@@ -61,6 +62,21 @@ func GetDestinationPath(path string) (string, error) {
 	// validate destination path exists
 	if _, err := os.Stat(dstPath); os.IsNotExist(err) {
 		return "", fmt.Errorf("%s: %s", ErrDestinationPathNotExist, dstPath)
+	}
+
+	return dstPath, nil
+}
+
+func GetSteamPath(path string) (string, error) {
+	// check for destination path override
+	dstPath := os.Getenv(ConfigOverrideSteamPath)
+	if dstPath == "" {
+		dstPath = path
+	}
+
+	// validate destination path exists
+	if _, err := os.Stat(dstPath); os.IsNotExist(err) {
+		return "", fmt.Errorf("%s: %s", ErrSteamPathNotExist, dstPath)
 	}
 
 	return dstPath, nil
