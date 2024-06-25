@@ -26,11 +26,12 @@ const (
 	ErrCopyingToSave00            = "error copying latest backup %s to save00: %v"
 	ErrLaunchingExplorer          = "error launching explorer"
 	ErrLaunchingNoita             = "error launching noita"
-	ErrNumBackups                 = "number of backups to keep must be between 1 and 100"
+	ErrNumBackups                 = "number of backups to keep must be between 1 and 64"
 	ErrGettingSourcePath          = "error getting source path"
 	ErrGettingDestinationPath     = "error getting destination path"
 	ErrSourcePathNotExist         = "source path does not exist"
 	ErrDestinationPathNotExist    = "destination path does not exist"
+	ErrSteamPathNotExist          = "steam path does not exist"
 	ErrClosingFile                = "error closing file"
 	ErrFailedCreateDir            = "failed to create directory: %s, error: %v"
 	ErrRunningSteam               = "error running steam"
@@ -72,6 +73,7 @@ const (
 	BtnBackup  = "Backup Noita"
 	BtnRestore = "Restore Noita"
 	BtnExplore = "Explore Backups"
+	BtnQuit    = "Quit"
 )
 
 // Checkbox

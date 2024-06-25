@@ -32,7 +32,7 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "noitabackup",
 	Short: "A Noita backup and restore manager",
-	Long: `A configurable Noita backup and restore manager and launcher.  Automates the tedious task of stopping,
+	Long: `A configurable Noita backup and restore manager and launcher.  Automates the tedious task of starting,
 backing up, restoring, and restarting Noita.  Includes both a GUI and command line interface.`,
 	PreRunE: validateCommandOptions,
 	Run: func(cmd *cobra.Command, args []string) {
