@@ -18,13 +18,14 @@ import (
 // ConfigOverrideSrcPath is the environment variable for overriding the default source path for Noita backups.
 // ConfigOverrideDstPath is the environment variable for overriding the default destination path for Noita backups.
 const (
-	ConfigDefaultAppDataPath = "..\\LocalLow\\Nolla_Games_Noita"
-	ConfigDefaultSavePath    = "save00"
-	ConfigDefaultDstPath     = "NoitaBackups"
-	ConfigUserProfile        = "USERPROFILE"
-	ConfigAppData            = "APPDATA"
-	ConfigOverrideSrcPath    = "CONFIG_NOITA_SRC_PATH"
-	ConfigOverrideDstPath    = "CONFIG_NOITA_DST_PATH"
+	ConfigDefaultAppDataPath             = "..\\LocalLow\\Nolla_Games_Noita"
+	ConfigDefaultSavePath                = "save00"
+	ConfigDefaultDstPath                 = "NoitaBackups"
+	ConfigUserProfile                    = "USERPROFILE"
+	ConfigAppData                        = "APPDATA"
+	ConfigOverrideSrcPath                = "CONFIG_NOITA_SRC_PATH"
+	ConfigOverrideDstPath                = "CONFIG_NOITA_DST_PATH"
+	Mode0755                 os.FileMode = 0755
 )
 
 func GetDefaultSourcePath() string {
@@ -44,7 +45,7 @@ func GetSourcePath(path string) (string, error) {
 
 	// validate source path exists
 	if _, err := os.Stat(srcPath); os.IsNotExist(err) {
-		return srcPath, fmt.Errorf("source path does not exist: %s", srcPath)
+		return srcPath, fmt.Errorf("%s: %s", ErrSourcePathNotExist, srcPath)
 	}
 
 	return srcPath, nil
@@ -59,7 +60,7 @@ func GetDestinationPath(path string) (string, error) {
 
 	// validate destination path exists
 	if _, err := os.Stat(dstPath); os.IsNotExist(err) {
-		return "", fmt.Errorf("destination path does not exist: %s", dstPath)
+		return "", fmt.Errorf("%s: %s", ErrDestinationPathNotExist, dstPath)
 	}
 
 	return dstPath, nil
@@ -81,7 +82,7 @@ func copyDirectory(src, dst string, dirCounter, fileCounter *int) error {
 
 		switch srcInfo.Mode() & os.ModeType {
 		case os.ModeDir:
-			if err := createIfNotExists(dstPath, 0755); err != nil {
+			if err := createIfNotExists(dstPath, Mode0755); err != nil {
 				return err
 			}
 			if err := copyDirectory(srcPath, dstPath, dirCounter, fileCounter); err != nil {
@@ -119,7 +120,7 @@ func copyFile(src, dst string) error {
 	defer func(out *os.File) {
 		err := out.Close()
 		if err != nil {
-			log.Printf("error closing file: %v", err)
+			log.Printf("%s: %v", ErrClosingFile, err)
 		}
 	}(out)
 
@@ -130,7 +131,7 @@ func copyFile(src, dst string) error {
 	defer func(in *os.File) {
 		err := in.Close()
 		if err != nil {
-			log.Printf("error closing file: %v", err)
+			log.Printf("%s: %v", ErrClosingFile, err)
 		}
 	}(in)
 
@@ -156,7 +157,7 @@ func createIfNotExists(dir string, perm os.FileMode) error {
 	}
 
 	if err := os.MkdirAll(dir, perm); err != nil {
-		return fmt.Errorf("failed to create directory: %s, error: %v", dir, err)
+		return fmt.Errorf(ErrFailedCreateDir, dir, err)
 	}
 
 	return nil
@@ -173,7 +174,7 @@ func buildDefaultDstPath() string {
 }
 
 func LaunchExplorer() error {
-	dstPath := viper.GetString("destination-path")
+	dstPath := viper.GetString(ViperDestinationPath)
 
 	// TODO: find out why explorer always returns an error code
 	cmd := exec.Command(ExplorerExe, dstPath)
@@ -188,16 +189,16 @@ func LaunchNoita(async bool) error {
 		if async {
 			err := cmd.Start()
 			if err != nil {
-				return fmt.Errorf("error running steam: %v", err)
+				return fmt.Errorf("%s: %v", ErrRunningSteam, err)
 			}
 		} else {
 			err := cmd.Run()
 			if err != nil {
-				return fmt.Errorf("error running steam: %v", err)
+				return fmt.Errorf("%s: %v", ErrRunningSteam, err)
 			}
 		}
 	} else {
-		return fmt.Errorf("noita.exe is already running")
+		return fmt.Errorf(ErrNoitaRunning)
 	}
 
 	return nil
