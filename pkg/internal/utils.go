@@ -183,7 +183,7 @@ func LaunchExplorer() error {
 }
 
 func LaunchNoita(async bool) error {
-	cmd := exec.Command(SteamExe, SteamNoitaFlags)
+	cmd := exec.Command(viper.GetString(ViperSteamPath), SteamNoitaFlags)
 
 	if !isNoitaRunning() {
 		if async {

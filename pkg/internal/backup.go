@@ -12,7 +12,6 @@ import (
 const (
 	TimeFormat                = "2006-01-02-15-04-05"
 	ConfigMaxNumBackupsToKeep = 64.00
-	SteamExe                  = "C:\\Program Files (x86)\\Steam\\steam.exe"
 	SteamNoitaFlags           = "steam://rungameid/881100"
 	ExplorerExe               = "explorer"
 )
