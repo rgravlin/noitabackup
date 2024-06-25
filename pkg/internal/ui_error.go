@@ -27,7 +27,6 @@ func NewErrorUI(error string) *ErrorUI {
 var (
 	quitButton = new(widget.Clickable)
 	colorBlack = color.NRGBA{A: 255}
-	colorWhite = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 )
 
 // Run handles all the events and rendering for the application window.
