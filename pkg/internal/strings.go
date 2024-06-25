@@ -59,10 +59,11 @@ const (
 
 // Viper
 const (
+	ViperAutoLaunch      = "auto-launch"
 	ViperNumBackups      = "num-backups"
 	ViperSourcePath      = "source-path"
 	ViperDestinationPath = "destination-path"
-	ViperAutoLaunch      = "auto-launch"
+	ViperSteamPath       = "steam-path"
 )
 
 // Buttons

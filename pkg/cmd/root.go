@@ -18,13 +18,14 @@ import (
 
 const (
 	appName                   = "Noita Backup and Restore"
+	ConfigDefaultSteamDir     = "C:\\Program Files (x86)\\Steam\\steam.exe"
 	ConfigMaxNumBackupsToKeep = 64
 )
 
 var (
-	cfgFile, sourcePath, destinationPath string
-	numBackupsToKeep                     int
-	autoLaunch                           bool
+	cfgFile, sourcePath, destinationPath, steamPath string
+	numBackupsToKeep                                int
+	autoLaunch                                      bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -71,6 +72,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.noitabackup.yaml)")
 	rootCmd.PersistentFlags().StringVar(&sourcePath, internal.ViperSourcePath, internal.GetDefaultSourcePath(), "Define the source Noita save00 path")
 	rootCmd.PersistentFlags().StringVar(&destinationPath, internal.ViperDestinationPath, internal.GetDefaultDestinationPath(), "Define the destination backup path")
+	rootCmd.PersistentFlags().StringVar(&steamPath, internal.ViperSteamPath, ConfigDefaultSteamDir, "Define the path for your Steam executable")
 	rootCmd.PersistentFlags().IntVar(&numBackupsToKeep, internal.ViperNumBackups, 16, "Define the maximum number of backups to keep")
 	rootCmd.PersistentFlags().BoolVar(&autoLaunch, internal.ViperAutoLaunch, false, "Auto-launch Noita after backup/restore operation")
 
@@ -79,6 +81,7 @@ func init() {
 		internal.ViperDestinationPath,
 		internal.ViperNumBackups,
 		internal.ViperAutoLaunch,
+		internal.ViperSteamPath,
 	}
 
 	for _, cmd := range commands {
