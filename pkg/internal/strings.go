@@ -29,6 +29,11 @@ const (
 	ErrNumBackups                 = "number of backups to keep must be between 1 and 100"
 	ErrGettingSourcePath          = "error getting source path"
 	ErrGettingDestinationPath     = "error getting destination path"
+	ErrSourcePathNotExist         = "source path does not exist"
+	ErrDestinationPathNotExist    = "destination path does not exist"
+	ErrClosingFile                = "error closing file"
+	ErrFailedCreateDir            = "failed to create directory: %s, error: %v"
+	ErrRunningSteam               = "error running steam"
 )
 
 // Info
