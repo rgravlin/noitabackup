@@ -56,6 +56,7 @@ const (
 	InfoAutoLaunchSet     = "auto-launch set to"
 	InfoStartingRestore   = "starting restore"
 	InfoStartingBackup    = "starting backup"
+	InfoErrorMessage      = "Configuration Error:"
 )
 
 // Viper
