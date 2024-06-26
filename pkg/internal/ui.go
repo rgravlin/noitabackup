@@ -128,39 +128,30 @@ func (ui *UI) Run(window *app.Window) error {
 			}
 
 			for launchButton.Clicked(gtx) {
-				err := LaunchNoita(true)
-				if err != nil {
-					ui.Logger.LogAndAppend(fmt.Sprintf("%s: %v", ErrLaunchingNoita, err))
+				if !ui.isOperationRunning() {
+					err := LaunchNoita(true)
+					if err != nil {
+						ui.Logger.LogAndAppend(fmt.Sprintf("%s: %v", ErrLaunchingNoita, err))
+					}
+				} else {
+					ui.Logger.LogAndAppend(ErrOperationAlreadyInProgress)
 				}
 			}
 
 			for restoreButton.Clicked(gtx) {
-				ui.restore = NewRestore(
-					StrLatest,
-					NewBackup(
-						true,
-						autoLaunchChecked,
-						viper.GetInt(ViperNumBackups),
-						viper.GetString(ViperSourcePath),
-						viper.GetString(ViperDestinationPath),
-					),
-				)
-				ui.restore.Backup.LogRing = ui.Logger
-				ui.Logger.LogAndAppend(InfoStartingRestore)
-				ui.restore.RestoreNoita()
+				if !ui.isOperationRunning() {
+					ui.runRestore()
+				} else {
+					ui.Logger.LogAndAppend(ErrOperationAlreadyInProgress)
+				}
 			}
 
 			for backupButton.Clicked(gtx) {
-				ui.backup = NewBackup(
-					true,
-					autoLaunchChecked,
-					viper.GetInt(ViperNumBackups),
-					viper.GetString(ViperSourcePath),
-					viper.GetString(ViperDestinationPath),
-				)
-				ui.backup.LogRing = ui.Logger
-				ui.Logger.LogAndAppend(InfoStartingBackup)
-				ui.backup.BackupNoita()
+				if !ui.isOperationRunning() {
+					ui.runBackup()
+				} else {
+					ui.Logger.LogAndAppend(ErrOperationAlreadyInProgress)
+				}
 			}
 
 			// TODO: make this not run every frame!
@@ -248,18 +239,49 @@ func (ui *UI) Run(window *app.Window) error {
 	}
 }
 
+func (ui *UI) runRestore() {
+	ui.restore = NewRestore(
+		StrLatest,
+		NewBackup(
+			true,
+			autoLaunchChecked,
+			viper.GetInt(ViperNumBackups),
+			viper.GetString(ViperSourcePath),
+			viper.GetString(ViperDestinationPath),
+		),
+	)
+	ui.restore.Backup.LogRing = ui.Logger
+	ui.Logger.LogAndAppend(InfoStartingRestore)
+	ui.restore.RestoreNoita()
+}
+
+func (ui *UI) runBackup() {
+	ui.backup = NewBackup(
+		true,
+		autoLaunchChecked,
+		viper.GetInt(ViperNumBackups),
+		viper.GetString(ViperSourcePath),
+		viper.GetString(ViperDestinationPath),
+	)
+	ui.backup.LogRing = ui.Logger
+	ui.Logger.LogAndAppend(InfoStartingBackup)
+	ui.backup.BackupNoita()
+}
+
 func (ui *UI) isOperationRunning() bool {
+	running := false
+
 	if ui.backup != nil {
 		if ui.backup.phase == started {
-			return true
+			running = true
 		}
 	}
 
 	if ui.restore != nil {
 		if ui.restore.Backup.phase == started {
-			return true
+			running = true
 		}
 	}
 
-	return false
+	return running
 }
