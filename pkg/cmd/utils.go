@@ -14,7 +14,8 @@ import (
 func validateCommandOptions(cmd *cobra.Command, args []string) error {
 	var uiErr string
 
-	if viper.GetInt(internal.ViperNumBackups) > ConfigMaxNumBackupsToKeep || numBackupsToKeep <= 0 {
+	numBackups := viper.GetInt(internal.ViperNumBackups)
+	if numBackups > ConfigMaxNumBackupsToKeep || numBackups <= 0 {
 		uiErr = fmt.Sprintf("%s: %d", internal.ErrNumBackups, viper.GetInt(internal.ViperNumBackups))
 	}
 
