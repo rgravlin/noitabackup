@@ -41,8 +41,7 @@ func (r *Restore) RestoreNoita() {
 
 func (r *Restore) restoreNoita() error {
 	var err error
-	t := time.Now()
-	r.Backup.timestamp = t
+	r.Backup.timestamp = time.Now()
 	r.Backup.phase = started
 	r.Backup.reportStart()
 

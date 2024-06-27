@@ -27,15 +27,8 @@ func NewErrorUI(error string) *ErrorUI {
 var (
 	quitButton = new(widget.Clickable)
 	colorBlack = color.NRGBA{A: 255}
+	inset      = layout.UniformInset(unit.Dp(0))
 )
-
-func makeText(theme *material.Theme, in string) material.LabelStyle {
-	str := material.Body1(theme, in)
-	str.Color = colorBlack
-	str.Alignment = text.Middle
-
-	return str
-}
 
 // Run handles all the events and rendering for the application window.
 // It takes a *app.Window as a parameter and returns an error if any.
@@ -53,44 +46,14 @@ func (ui *ErrorUI) Run(window *app.Window) error {
 			paint.ColorOp{Color: color.NRGBA{A: 0xff, R: 0xff}}.Add(gtx.Ops)
 			paint.PaintOp{}.Add(gtx.Ops)
 
-			errorLabel := makeText(theme, InfoErrorMessage)
-			errorString := makeText(theme, ui.Error)
-
 			for quitButton.Clicked(gtx) {
 				os.Exit(0)
 			}
 
 			widgets := []layout.Widget{
-				func(gtx C) D {
-					in := layout.UniformInset(unit.Dp(0))
-					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
-							layout.Rigid(func(gtx C) D {
-								return in.Layout(gtx, errorLabel.Layout)
-							}),
-						)
-					})
-				},
-				func(gtx C) D {
-					in := layout.UniformInset(unit.Dp(0))
-					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
-							layout.Rigid(func(gtx C) D {
-								return in.Layout(gtx, errorString.Layout)
-							}),
-						)
-					})
-				},
-				func(gtx C) D {
-					in := layout.UniformInset(unit.Dp(0))
-					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
-							layout.Rigid(func(gtx C) D {
-								return in.Layout(gtx, material.Button(theme, quitButton, BtnQuit).Layout)
-							}),
-						)
-					})
-				},
+				makeLabelWidget(theme, InfoErrorMessage, text.Middle, colorBlack),
+				makeLabelWidget(theme, ui.Error, text.Middle, colorBlack),
+				makeButtonWidget(theme),
 			}
 
 			material.List(theme, list).Layout(gtx, len(widgets), func(gtx C, i int) D {
@@ -100,4 +63,37 @@ func (ui *ErrorUI) Run(window *app.Window) error {
 			e.Frame(gtx.Ops)
 		}
 	}
+}
+
+func makeLabelWidget(theme *material.Theme, in string, align text.Alignment, textColor color.NRGBA) layout.Widget {
+	label := makeText(theme, in, align, textColor)
+	return func(gtx C) D {
+		return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
+				layout.Rigid(func(gtx C) D {
+					return inset.Layout(gtx, label.Layout)
+				}),
+			)
+		})
+	}
+}
+
+func makeButtonWidget(theme *material.Theme) layout.Widget {
+	return func(gtx C) D {
+		return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
+				layout.Rigid(func(gtx C) D {
+					return inset.Layout(gtx, material.Button(theme, quitButton, BtnQuit).Layout)
+				}),
+			)
+		})
+	}
+}
+
+func makeText(theme *material.Theme, in string, align text.Alignment, textColor color.NRGBA) material.LabelStyle {
+	str := material.Body1(theme, in)
+	str.Color = textColor
+	str.Alignment = align
+
+	return str
 }
