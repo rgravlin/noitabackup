@@ -53,6 +53,7 @@ type UI struct {
 	restore           *Restore
 	Logger            *LogRing
 	autoLaunchChecked bool
+	theme             *material.Theme
 }
 
 func NewUI(autoLaunch bool) *UI {
@@ -65,7 +66,7 @@ func NewUI(autoLaunch bool) *UI {
 // Run handles all the events and rendering for the application window.
 // It takes a *app.Window as a parameter and returns an error if any.
 func (ui *UI) Run(window *app.Window) error {
-	theme := material.NewTheme()
+	ui.theme = material.NewTheme()
 	var ops op.Ops
 	autoLaunch.Value, autoLaunchChecked = ui.autoLaunchChecked, ui.autoLaunchChecked
 
@@ -84,34 +85,16 @@ func (ui *UI) Run(window *app.Window) error {
 			numBackups.Value = float32(viper.GetInt(ViperNumBackups)) / ConfigMaxNumBackupsToKeep
 
 			if debugLog.Update(gtx) {
-				switch debugHeight {
-				case DefaultMaxHeight:
-					debugHeight = DefaultMinHeight
-				case DefaultMinHeight:
-					debugHeight = DefaultMaxHeight
-				default:
-				}
-				window.Option(
-					app.MaxSize(unit.Dp(DefaultWidth), unit.Dp(debugHeight)),
-					app.MinSize(unit.Dp(DefaultWidth), unit.Dp(debugHeight)),
-				)
-				debugLogChecked = !debugLogChecked
+				ui.toggleDebugHeight()
+				ui.adjustWindowSize(window, DefaultWidth, debugHeight)
 
+				debugLogChecked = !debugLogChecked
 				if debugLogChecked {
-					debugLogListFunc = func(gtx C) D {
-						return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
-							layout.Rigid(func(gtx C) D {
-								return logList.Layout(gtx, ui.Logger.Len(), func(gtx layout.Context, i int) D {
-									return layout.UniformInset(unit.Dp(1)).Layout(gtx, material.Label(theme, unit.Sp(14), ui.Logger.Print()[i]).Layout)
-								})
-							}),
-						)
-					}
+					ui.enableDebugLog()
 				} else {
-					debugLogListFunc = func(gtx C) D {
-						return layout.Spacer{Width: 0}.Layout(gtx)
-					}
+					ui.disableDebugLog()
 				}
+
 				ui.Logger.LogAndAppend(fmt.Sprintf("%s %t", InfoDebugLogSet, debugLogChecked))
 			}
 
@@ -168,16 +151,16 @@ func (ui *UI) Run(window *app.Window) error {
 					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
 							layout.Rigid(func(gtx C) D {
-								return in.Layout(gtx, material.Button(theme, launchButton, BtnLaunch).Layout)
+								return in.Layout(gtx, material.Button(ui.theme, launchButton, BtnLaunch).Layout)
 							}),
 							layout.Rigid(func(gtx C) D {
-								return in.Layout(gtx, material.Button(theme, backupButton, BtnBackup).Layout)
+								return in.Layout(gtx, material.Button(ui.theme, backupButton, BtnBackup).Layout)
 							}),
 							layout.Rigid(func(gtx C) D {
-								return in.Layout(gtx, material.Button(theme, restoreButton, BtnRestore).Layout)
+								return in.Layout(gtx, material.Button(ui.theme, restoreButton, BtnRestore).Layout)
 							}),
 							layout.Rigid(func(gtx C) D {
-								return in.Layout(gtx, material.Button(theme, exploreButton, BtnExplore).Layout)
+								return in.Layout(gtx, material.Button(ui.theme, exploreButton, BtnExplore).Layout)
 							}),
 						)
 					})
@@ -196,7 +179,7 @@ func (ui *UI) Run(window *app.Window) error {
 							}.Layout(gtx, func(gtx C) D {
 								gtx.Constraints.Max.X = gtx.Dp(unit.Dp(24))
 								gtx.Constraints.Max.Y = gtx.Dp(unit.Dp(24))
-								return material.Loader(theme).Layout(gtx)
+								return material.Loader(ui.theme).Layout(gtx)
 							})
 						})
 					} else {
@@ -205,16 +188,16 @@ func (ui *UI) Run(window *app.Window) error {
 
 					return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
 						layout.Rigid(func(gtx C) D {
-							return in.Layout(gtx, material.CheckBox(theme, autoLaunch, ChkAutoLaunch).Layout)
+							return in.Layout(gtx, material.CheckBox(ui.theme, autoLaunch, ChkAutoLaunch).Layout)
 						}),
 						loadFunc,
 						layout.Rigid(func(gtx C) D {
-							return in.Layout(gtx, material.Label(theme, theme.TextSize, SldNumBackupsToKeep).Layout)
+							return in.Layout(gtx, material.Label(ui.theme, ui.theme.TextSize, SldNumBackupsToKeep).Layout)
 						}),
-						layout.Flexed(1, material.Slider(theme, numBackups).Layout),
+						layout.Flexed(1, material.Slider(ui.theme, numBackups).Layout),
 						layout.Rigid(func(gtx C) D {
 							return layout.UniformInset(unit.Dp(8)).Layout(gtx,
-								material.Body1(theme, fmt.Sprintf("%.0f", numBackups.Value*ConfigMaxNumBackupsToKeep)).Layout,
+								material.Body1(ui.theme, fmt.Sprintf("%.0f", numBackups.Value*ConfigMaxNumBackupsToKeep)).Layout,
 							)
 						}),
 					)
@@ -223,14 +206,14 @@ func (ui *UI) Run(window *app.Window) error {
 					in := layout.UniformInset(unit.Dp(8))
 					return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
 						layout.Rigid(func(gtx C) D {
-							return in.Layout(gtx, material.CheckBox(theme, debugLog, ChkDebugLog).Layout)
+							return in.Layout(gtx, material.CheckBox(ui.theme, debugLog, ChkDebugLog).Layout)
 						}),
 					)
 				},
 				debugLogListFunc,
 			}
 
-			material.List(theme, list).Layout(gtx, len(widgets), func(gtx C, i int) D {
+			material.List(ui.theme, list).Layout(gtx, len(widgets), func(gtx C, i int) D {
 				return layout.UniformInset(unit.Dp(0)).Layout(gtx, widgets[i])
 			})
 
@@ -284,4 +267,39 @@ func (ui *UI) isOperationRunning() bool {
 	}
 
 	return running
+}
+
+func (ui *UI) enableDebugLog() {
+	debugLogListFunc = func(gtx C) D {
+		return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
+			layout.Rigid(func(gtx C) D {
+				return logList.Layout(gtx, ui.Logger.Len(), func(gtx layout.Context, i int) D {
+					return layout.UniformInset(unit.Dp(1)).Layout(gtx, material.Label(ui.theme, unit.Sp(14), ui.Logger.Print()[i]).Layout)
+				})
+			}),
+		)
+	}
+}
+
+func (ui *UI) disableDebugLog() {
+	debugLogListFunc = func(gtx C) D {
+		return layout.Spacer{Width: 0}.Layout(gtx)
+	}
+}
+
+func (ui *UI) toggleDebugHeight() {
+	switch debugHeight {
+	case DefaultMaxHeight:
+		debugHeight = DefaultMinHeight
+	case DefaultMinHeight:
+		debugHeight = DefaultMaxHeight
+	default:
+	}
+}
+
+func (ui *UI) adjustWindowSize(window *app.Window, width, height int) {
+	window.Option(
+		app.MaxSize(unit.Dp(width), unit.Dp(height)),
+		app.MinSize(unit.Dp(width), unit.Dp(height)),
+	)
 }

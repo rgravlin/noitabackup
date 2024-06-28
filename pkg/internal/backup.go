@@ -58,8 +58,7 @@ func (b *Backup) BackupNoita() {
 }
 
 func (b *Backup) backupNoita() error {
-	t := time.Now()
-	b.timestamp = t
+	b.timestamp = time.Now()
 	b.phase = started
 	b.reportStart()
 
