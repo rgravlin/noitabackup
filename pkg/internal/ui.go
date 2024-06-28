@@ -25,6 +25,7 @@ const (
 
 var (
 	debugLogListFunc  = func(gtx C) D { return layout.Spacer{Width: 0}.Layout(gtx) }
+	loadFunc          = layout.Rigid(layout.Spacer{Width: 56}.Layout)
 	logList           = list.List
 	exploreButton     = new(widget.Clickable)
 	launchButton      = new(widget.Clickable)
@@ -147,45 +148,19 @@ func (ui *UI) Run(window *app.Window) error {
 
 			widgets := []layout.Widget{
 				func(gtx C) D {
-					in := layout.UniformInset(unit.Dp(8))
 					return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
-							layout.Rigid(func(gtx C) D {
-								return in.Layout(gtx, material.Button(ui.theme, launchButton, BtnLaunch).Layout)
-							}),
-							layout.Rigid(func(gtx C) D {
-								return in.Layout(gtx, material.Button(ui.theme, backupButton, BtnBackup).Layout)
-							}),
-							layout.Rigid(func(gtx C) D {
-								return in.Layout(gtx, material.Button(ui.theme, restoreButton, BtnRestore).Layout)
-							}),
-							layout.Rigid(func(gtx C) D {
-								return in.Layout(gtx, material.Button(ui.theme, exploreButton, BtnExplore).Layout)
-							}),
+							ui.makeButton(launchButton, BtnLaunch),
+							ui.makeButton(backupButton, BtnBackup),
+							ui.makeButton(restoreButton, BtnRestore),
+							ui.makeButton(exploreButton, BtnExplore),
 						)
 					})
 				},
 				func(gtx C) D {
+					ui.updateLoadFunc()
+
 					in := layout.UniformInset(unit.Dp(8))
-
-					var loadFunc layout.FlexChild
-					if ui.isOperationRunning() {
-						loadFunc = layout.Rigid(func(gtx C) D {
-							return layout.Inset{
-								Top:    unit.Dp(4),
-								Bottom: unit.Dp(4),
-								Left:   unit.Dp(16),
-								Right:  unit.Dp(16),
-							}.Layout(gtx, func(gtx C) D {
-								gtx.Constraints.Max.X = gtx.Dp(unit.Dp(24))
-								gtx.Constraints.Max.Y = gtx.Dp(unit.Dp(24))
-								return material.Loader(ui.theme).Layout(gtx)
-							})
-						})
-					} else {
-						loadFunc = layout.Rigid(layout.Spacer{Width: 56}.Layout)
-					}
-
 					return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
 						layout.Rigid(func(gtx C) D {
 							return in.Layout(gtx, material.CheckBox(ui.theme, autoLaunch, ChkAutoLaunch).Layout)
@@ -220,6 +195,32 @@ func (ui *UI) Run(window *app.Window) error {
 			e.Frame(gtx.Ops)
 		}
 	}
+}
+
+func (ui *UI) updateLoadFunc() {
+	if ui.isOperationRunning() {
+		loadFunc = layout.Rigid(func(gtx C) D {
+			return layout.Inset{
+				Top:    unit.Dp(4),
+				Bottom: unit.Dp(4),
+				Left:   unit.Dp(16),
+				Right:  unit.Dp(16),
+			}.Layout(gtx, func(gtx C) D {
+				gtx.Constraints.Max.X = gtx.Dp(unit.Dp(24))
+				gtx.Constraints.Max.Y = gtx.Dp(unit.Dp(24))
+				return material.Loader(ui.theme).Layout(gtx)
+			})
+		})
+	} else {
+		loadFunc = layout.Rigid(layout.Spacer{Width: 56}.Layout)
+	}
+}
+
+func (ui *UI) makeButton(button *widget.Clickable, label string) layout.FlexChild {
+	in := layout.UniformInset(unit.Dp(8))
+	return layout.Rigid(func(gtx C) D {
+		return in.Layout(gtx, material.Button(ui.theme, button, label).Layout)
+	})
 }
 
 func (ui *UI) runRestore() {
