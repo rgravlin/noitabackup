@@ -82,7 +82,7 @@ func GetSteamPath(path string) (string, error) {
 	return dstPath, nil
 }
 
-func copyDirectory(src, dst string, dirCounter, fileCounter *int) error {
+func buildDirectory(jobs chan Job, src, dst string, dirCounter, fileCounter *int) error {
 	entries, err := os.ReadDir(src)
 	if err != nil {
 		return err
@@ -101,15 +101,14 @@ func copyDirectory(src, dst string, dirCounter, fileCounter *int) error {
 			if err := createIfNotExists(dstPath, Mode0755); err != nil {
 				return err
 			}
-			if err := copyDirectory(srcPath, dstPath, dirCounter, fileCounter); err != nil {
+			if err := buildDirectory(jobs, srcPath, dstPath, dirCounter, fileCounter); err != nil {
 				return err
 			}
 			*dirCounter += 1
 		default:
-			if err := copyFile(srcPath, dstPath); err != nil {
-				return err
-			}
+			jobs <- Job{srcPath, dstPath}
 			*fileCounter += 1
+			continue
 		}
 
 		fInfo, err := entry.Info()
@@ -124,6 +123,7 @@ func copyDirectory(src, dst string, dirCounter, fileCounter *int) error {
 			}
 		}
 	}
+
 	return nil
 }
 

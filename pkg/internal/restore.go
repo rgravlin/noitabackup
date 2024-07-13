@@ -103,11 +103,13 @@ func (r *Restore) restoreSave00() error {
 		return err
 	}
 
-	// recursively copy latest directory to destination
+	// recursively copy source to destination
 	latest := fmt.Sprintf("%s\\%s", r.Backup.dstPath, r.Backup.sortedBackupDirs[len(r.Backup.sortedBackupDirs)-1].Format(TimeFormat))
 	r.Backup.LogRing.LogAndAppend(fmt.Sprintf(InfoCopyBackup, latest))
-	if err := copyDirectory(latest, r.Backup.srcPath, &r.Backup.dirCounter, &r.Backup.fileCounter); err != nil {
-		r.Backup.LogRing.LogAndAppend(fmt.Sprintf(ErrCopyingToSave00, latest, err))
+	if err := concurrentCopy(latest, r.Backup.srcPath, &r.Backup.dirCounter, &r.Backup.fileCounter, NumberWorkers); err != nil {
+		r.Backup.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrCopyingToSave00, err))
+		r.Backup.phase = stopped
+		return err
 	}
 
 	r.Backup.LogRing.LogAndAppend(fmt.Sprintf("%s: %s", InfoSuccessfulRestore, latest))

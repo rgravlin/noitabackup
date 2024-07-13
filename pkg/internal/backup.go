@@ -10,10 +10,11 @@ import (
 )
 
 const (
-	TimeFormat                = "2006-01-02-15-04-05"
 	ConfigMaxNumBackupsToKeep = 64.00
-	SteamNoitaFlags           = "steam://rungameid/881100"
 	ExplorerExe               = "explorer"
+	NumberWorkers             = 4
+	SteamNoitaFlags           = "steam://rungameid/881100"
+	TimeFormat                = "2006-01-02-15-04-05"
 )
 
 type Backup struct {
@@ -108,8 +109,8 @@ func (b *Backup) backupNoita() error {
 	}
 
 	// recursively copy source to destination
-	if err := copyDirectory(b.srcPath, newBackupPath, &b.dirCounter, &b.fileCounter); err != nil {
-		b.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrSourceDestination, err))
+	if err := concurrentCopy(b.srcPath, newBackupPath, &b.dirCounter, &b.fileCounter, NumberWorkers); err != nil {
+		b.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrWorkerFailed, err))
 		b.phase = stopped
 		return err
 	}

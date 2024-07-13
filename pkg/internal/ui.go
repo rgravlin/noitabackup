@@ -86,7 +86,7 @@ func (ui *UI) Run(window *app.Window) error {
 			numBackups.Value = float32(viper.GetInt(ViperNumBackups)) / ConfigMaxNumBackupsToKeep
 
 			if debugLog.Update(gtx) {
-				ui.toggleDebugHeight()
+				ui.adjustDebugHeight()
 				ui.adjustWindowSize(window, DefaultWidth, debugHeight)
 
 				debugLogChecked = !debugLogChecked
@@ -288,7 +288,7 @@ func (ui *UI) disableDebugLog() {
 	}
 }
 
-func (ui *UI) toggleDebugHeight() {
+func (ui *UI) adjustDebugHeight() {
 	switch debugHeight {
 	case DefaultMaxHeight:
 		debugHeight = DefaultMinHeight

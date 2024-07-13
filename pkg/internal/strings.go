@@ -1,6 +1,5 @@
 package internal
 
-// Strings
 const (
 	StrLatest = "latest"
 )
@@ -14,7 +13,6 @@ const (
 	ErrErrorGettingBackups        = "error getting backups"
 	ErrFailureDeletingBackups     = "failure deleting backups"
 	ErrFailedToLaunch             = "failed to launch noita"
-	ErrSourceDestination          = "cannot copy source to destination"
 	ErrProcessingSave00           = "error processing save00"
 	ErrBackupNotFound             = "backup %s not found in backup directory"
 	ErrCannotCreateDestination    = "cannot create destination path"
@@ -27,14 +25,15 @@ const (
 	ErrLaunchingExplorer          = "error launching explorer"
 	ErrLaunchingNoita             = "error launching noita"
 	ErrNumBackups                 = "number of backups to keep must be between 1 and 64"
-	ErrGettingSourcePath          = "error getting source path"
-	ErrGettingDestinationPath     = "error getting destination path"
 	ErrSourcePathNotExist         = "source path does not exist"
 	ErrDestinationPathNotExist    = "destination path does not exist"
 	ErrSteamPathNotExist          = "steam path does not exist"
 	ErrClosingFile                = "error closing file"
 	ErrFailedCreateDir            = "failed to create directory: %s, error: %v"
 	ErrRunningSteam               = "error running steam"
+	ErrStatFile                   = "error reading file or directory"
+	ErrCopyFile                   = "error copying file"
+	ErrWorkerFailed               = "worker error"
 )
 
 // Info
@@ -83,7 +82,6 @@ const (
 	ChkDebugLog   = "Debug Log"
 )
 
-// Slider
 const (
 	SldNumBackupsToKeep = "Number backups to keep"
 )
