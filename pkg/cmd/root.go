@@ -20,6 +20,7 @@ const (
 	appName                   = "Noita Backup and Restore"
 	ConfigDefaultSteamDir     = "C:\\Program Files (x86)\\Steam\\steam.exe"
 	ConfigMaxNumBackupsToKeep = 64
+	ConfigDefaultNumBackups   = 16
 )
 
 var (
@@ -70,11 +71,11 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.noitabackup.yaml)")
-	rootCmd.PersistentFlags().StringVar(&sourcePath, internal.ViperSourcePath, internal.GetDefaultSourcePath(), "Define the source Noita save00 path")
-	rootCmd.PersistentFlags().StringVar(&destinationPath, internal.ViperDestinationPath, internal.GetDefaultDestinationPath(), "Define the destination backup path")
-	rootCmd.PersistentFlags().StringVar(&steamPath, internal.ViperSteamPath, ConfigDefaultSteamDir, "Define the path for your Steam executable")
-	rootCmd.PersistentFlags().IntVar(&numBackupsToKeep, internal.ViperNumBackups, 16, "Define the maximum number of backups to keep")
-	rootCmd.PersistentFlags().BoolVar(&autoLaunch, internal.ViperAutoLaunch, false, "Auto-launch Noita after backup/restore operation")
+	rootCmd.PersistentFlags().StringVar(&sourcePath, internal.ViperSourcePath, internal.GetDefaultSourcePath(), "source Noita save00 path")
+	rootCmd.PersistentFlags().StringVar(&destinationPath, internal.ViperDestinationPath, internal.GetDefaultDestinationPath(), "destination backup path")
+	rootCmd.PersistentFlags().StringVar(&steamPath, internal.ViperSteamPath, ConfigDefaultSteamDir, "path for your Steam executable")
+	rootCmd.PersistentFlags().IntVar(&numBackupsToKeep, internal.ViperNumBackups, ConfigDefaultNumBackups, "maximum number of backups to keep")
+	rootCmd.PersistentFlags().BoolVar(&autoLaunch, internal.ViperAutoLaunch, false, "auto-launch Noita after backup/restore operation")
 
 	commands := []string{
 		internal.ViperSourcePath,

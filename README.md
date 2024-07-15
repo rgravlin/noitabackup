@@ -5,15 +5,16 @@ in Go, so that's why the language was chosen.  The UI was built with [GioUI](htt
 the command line interface with [cobra](https://github.com/spf13/cobra) 
 
 * Currently, Windows only!
+* Faster than Windows copy/paste!
+* Supports custom source directory
+* Supports custom destination directory
+* Configured via environmental variables
+* Command line interface
 * Basic GUI launcher features:
   * Backup and Restore (with auto-launch noita.exe)
   * Number of backups to keep
   * Open noita.exe
   * Explore Backups
-* Supports custom source directory
-* Supports custom destination directory
-* Configured via environmental variables
-* Command line interface
 
 # How To Use
 ## First Use (Backup)
