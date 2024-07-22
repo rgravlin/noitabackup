@@ -61,7 +61,7 @@ func (r *Restore) restoreNoita() error {
 	if r.RestoreFile != "latest" {
 		Backups := convertTimeSliceToStrings(r.Backup.sortedBackupDirs)
 		if !slices.Contains(Backups, r.RestoreFile) {
-			return r.restorePost(fmt.Sprintf(fmt.Sprintf(ErrBackupNotFound, r.RestoreFile)), false)
+			return r.restorePost(fmt.Sprintf(ErrBackupNotFound, r.RestoreFile), false)
 		}
 	}
 
