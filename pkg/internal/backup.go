@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
 	"sort"
@@ -11,8 +12,8 @@ import (
 
 const (
 	ConfigMaxNumBackupsToKeep = 64.00
+	ConfigMaxWorkers          = 32.00
 	ExplorerExe               = "explorer"
-	NumberWorkers             = 4
 	SteamNoitaFlags           = "steam://rungameid/881100"
 	TimeFormat                = "2006-01-02-15-04-05"
 )
@@ -68,9 +69,7 @@ func (b *Backup) backupNoita() error {
 	// get current number of backups
 	curNumBackups, err := getNumBackups(b.dstPath)
 	if err != nil {
-		b.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrErrorGettingBackups, err))
-		b.phase = stopped
-		return err
+		return b.backupPost(newBackupPath, fmt.Sprintf("%s: %v", ErrErrorGettingBackups, err))
 	} else {
 		b.LogRing.LogAndAppend(fmt.Sprintf("%s: %d", InfoNumberOfBackups, curNumBackups))
 	}
@@ -88,31 +87,23 @@ func (b *Backup) backupNoita() error {
 		// oldest are first in the sorted slice
 		b.sortedBackupDirs, err = getBackupDirs(b.dstPath, TimeFormat)
 		if err != nil {
-			b.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrErrorGettingBackups, err))
-			b.phase = stopped
-			return err
+			return b.backupPost(newBackupPath, fmt.Sprintf("%s: %v", ErrErrorGettingBackups, err))
 		}
 
 		// clean backup directories to make room for this backup
 		if err := b.cleanBackups(); err != nil {
-			b.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrFailureDeletingBackups, err))
-			b.phase = stopped
-			return err
+			return b.backupPost(newBackupPath, fmt.Sprintf("%s: %v", ErrFailureDeletingBackups, err))
 		}
 	}
 
 	// create new backup path
 	if err := createIfNotExists(newBackupPath, 0755); err != nil {
-		b.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrCannotCreateDestination, err))
-		b.phase = stopped
-		return err
+		return b.backupPost(newBackupPath, fmt.Sprintf("%s: %v", ErrCannotCreateDestination, err))
 	}
 
 	// recursively copy source to destination
-	if err := concurrentCopy(b.srcPath, newBackupPath, &b.dirCounter, &b.fileCounter, NumberWorkers); err != nil {
-		b.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrWorkerFailed, err))
-		b.phase = stopped
-		return err
+	if err := concurrentCopy(b.srcPath, newBackupPath, &b.dirCounter, &b.fileCounter, viper.GetInt("num-workers")); err != nil {
+		return b.backupPost(newBackupPath, fmt.Sprintf("%s: %v", ErrWorkerFailed, err))
 	}
 
 	b.reportStop()
@@ -165,6 +156,21 @@ func (b *Backup) cleanBackups() error {
 	}
 
 	return nil
+}
+
+func (b *Backup) backupPost(backupPath, errorMessage string) error {
+	b.LogRing.LogAndAppend(errorMessage)
+
+	if exists(backupPath) {
+		err := os.RemoveAll(backupPath)
+		if err != nil {
+			b.phase = stopped
+			return err
+		}
+	}
+
+	b.phase = stopped
+	return fmt.Errorf(errorMessage)
 }
 
 func getBackupDirs(backupPath, timePattern string) ([]time.Time, error) {

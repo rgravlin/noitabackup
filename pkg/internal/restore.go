@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"os"
 	"slices"
 	"time"
@@ -48,25 +49,19 @@ func (r *Restore) restoreNoita() error {
 	// get sorted Backup directories
 	r.Backup.sortedBackupDirs, err = getBackupDirs(r.Backup.dstPath, TimeFormat)
 	if err != nil {
-		r.Backup.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrFailedGettingBackupDirs, err))
-		r.Backup.phase = stopped
-		return err
+		return r.restorePost(fmt.Sprintf("%s: %v", ErrFailedGettingBackupDirs, err), false)
 	}
 
 	// protect against no Backups
 	if len(r.Backup.sortedBackupDirs) == 0 {
-		r.Backup.LogRing.LogAndAppend(ErrNoBackupDirs)
-		r.Backup.phase = stopped
-		return err
+		return r.restorePost(ErrNoBackupDirs, false)
 	}
 
 	// check the Backup directory for the specified Backup to restore
 	if r.RestoreFile != "latest" {
 		Backups := convertTimeSliceToStrings(r.Backup.sortedBackupDirs)
 		if !slices.Contains(Backups, r.RestoreFile) {
-			r.Backup.LogRing.LogAndAppend(fmt.Sprintf(ErrBackupNotFound, r.RestoreFile))
-			r.Backup.phase = stopped
-			return err
+			return r.restorePost(fmt.Sprintf(fmt.Sprintf(ErrBackupNotFound, r.RestoreFile)), false)
 		}
 	}
 
@@ -74,17 +69,12 @@ func (r *Restore) restoreNoita() error {
 	// 1. delete save00.bak
 	// 2. rename save00 -> save00.bak
 	if err := r.processSave00(); err != nil {
-		r.Backup.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrProcessingSave00, err))
-		r.Backup.phase = stopped
-		return err
+		return r.restorePost(fmt.Sprintf("%s: %v", ErrProcessingSave00, err), false)
 	}
 
 	// restore specified (default latest) Backup to destination
 	if err := r.restoreSave00(); err != nil {
-		r.Backup.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrRestoringToSave00, err))
-		r.Backup.phase = stopped
-		return err
-
+		return r.restorePost(fmt.Sprintf("%s: %v", ErrRestoringToSave00, err), true)
 	}
 
 	r.Backup.reportStop()
@@ -106,7 +96,7 @@ func (r *Restore) restoreSave00() error {
 	// recursively copy source to destination
 	latest := fmt.Sprintf("%s\\%s", r.Backup.dstPath, r.Backup.sortedBackupDirs[len(r.Backup.sortedBackupDirs)-1].Format(TimeFormat))
 	r.Backup.LogRing.LogAndAppend(fmt.Sprintf(InfoCopyBackup, latest))
-	if err := concurrentCopy(latest, r.Backup.srcPath, &r.Backup.dirCounter, &r.Backup.fileCounter, NumberWorkers); err != nil {
+	if err := concurrentCopy(latest, r.Backup.srcPath, &r.Backup.dirCounter, &r.Backup.fileCounter, viper.GetInt("num-workers")); err != nil {
 		r.Backup.LogRing.LogAndAppend(fmt.Sprintf("%s: %v", ErrCopyingToSave00, err))
 		r.Backup.phase = stopped
 		return err
@@ -148,6 +138,32 @@ func (r *Restore) processSave00() error {
 	}
 
 	return nil
+}
+
+func (r *Restore) restorePost(errorMessage string, cleanup bool) error {
+	r.Backup.LogRing.LogAndAppend(errorMessage)
+
+	if cleanup {
+		// delete save00
+		if exists(r.Backup.srcPath) {
+			if err := deletePath(r.Backup.LogRing, r.Backup.srcPath); err != nil {
+				r.Backup.phase = stopped
+				return err
+			}
+		}
+
+		// restore save00.bak due to failure
+		if exists(fmt.Sprintf(r.Backup.srcPath, backupSuffix)) {
+			r.Backup.LogRing.LogAndAppend(InfoRenameRestore)
+			if err := os.Rename(fmt.Sprintf("%s%s", r.Backup.srcPath, backupSuffix), r.Backup.srcPath); err != nil {
+				r.Backup.phase = stopped
+				return err
+			}
+		}
+	}
+
+	r.Backup.phase = stopped
+	return fmt.Errorf(errorMessage)
 }
 
 func convertTimeSliceToStrings(timeSlice []time.Time) []string {

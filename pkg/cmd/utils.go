@@ -19,6 +19,11 @@ func validateCommandOptions(cmd *cobra.Command, args []string) error {
 		uiErr = fmt.Sprintf("%s: %d", internal.ErrNumBackups, numBackups)
 	}
 
+	numWorkers := viper.GetInt(internal.ViperNumWorkers)
+	if numWorkers > ConfigMaxNumWorkers || numWorkers <= 0 {
+		uiErr = fmt.Sprintf("%s: %d", internal.ErrNumWorkers, numWorkers)
+	}
+
 	if path, err := internal.GetSourcePath(viper.GetString(internal.ViperSourcePath)); err != nil {
 		uiErr = fmt.Sprintf("%v", err)
 	} else {

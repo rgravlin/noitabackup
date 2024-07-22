@@ -35,6 +35,7 @@ var (
 	debugHeight       = 155
 	autoLaunch        = new(widget.Bool)
 	numBackups        = new(widget.Float)
+	numWorkers        = new(widget.Float)
 	autoLaunchChecked = false
 	debugLogChecked   = false
 	list              = &widget.List{
@@ -84,6 +85,7 @@ func (ui *UI) Run(window *app.Window) error {
 			// 	app.MinSize(unit.Dp(640), unit.Dp(105)),
 			// )
 			numBackups.Value = float32(viper.GetInt(ViperNumBackups)) / ConfigMaxNumBackupsToKeep
+			numWorkers.Value = float32(viper.GetInt(ViperNumWorkers)) / ConfigMaxWorkers
 
 			if debugLog.Update(gtx) {
 				ui.adjustDebugHeight()
@@ -182,6 +184,18 @@ func (ui *UI) Run(window *app.Window) error {
 					return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
 						layout.Rigid(func(gtx C) D {
 							return in.Layout(gtx, material.CheckBox(ui.theme, debugLog, ChkDebugLog).Layout)
+						}),
+						layout.Rigid(func(gtx C) D {
+							return in.Layout(gtx, layout.Spacer{Width: 30}.Layout)
+						}),
+						layout.Rigid(func(gtx C) D {
+							return in.Layout(gtx, material.Label(ui.theme, ui.theme.TextSize, SldNumWorkers).Layout)
+						}),
+						layout.Flexed(1, material.Slider(ui.theme, numWorkers).Layout),
+						layout.Rigid(func(gtx C) D {
+							return layout.UniformInset(unit.Dp(8)).Layout(gtx,
+								material.Body1(ui.theme, fmt.Sprintf("%.0f", numWorkers.Value*ConfigMaxWorkers)).Layout,
+							)
 						}),
 					)
 				},
