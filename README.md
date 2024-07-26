@@ -1,5 +1,5 @@
 # Noita Backup and Restore (file) Utility
-![Noita Backup and Restore](images\noita-backup-restore-gui-default.png)
+![Noita Backup and Restore](images/noita-backup-restore-gui-default.png)
 
 The goal of this project is to have an easy to use Noita backup and restore solution.  I work mostly
 in Go, so that's why the language was chosen.  The UI was built with [GioUI](https://github.com/gioui/gio) and
@@ -86,8 +86,8 @@ C:\> noitabackup.exe backup
 
 ## Screenshots
 ### Noita restore process
-![Noita Restore Process](images\noita-backup-restore-gui-restore.png)
+![Noita Restore Process](images/noita-backup-restore-gui-restore.png)
 ### Noita is running (red background)
-![Noita UI Noita Running Red Background](images\noita-backup-autolaunch-noitarunning.png)
+![Noita UI Noita Running Red Background](images/noita-backup-autolaunch-noitarunning.png)
 ### Enable Debug log
-![Noita UI Debug Log](images\noita-backup-restore-gui-debuglog-default.png)
+![Noita UI Debug Log](images/noita-backup-restore-gui-debuglog-default.png)
