@@ -21,11 +21,13 @@ const (
 	ConfigDefaultSteamDir     = "C:\\Program Files (x86)\\Steam\\steam.exe"
 	ConfigMaxNumBackupsToKeep = 64
 	ConfigDefaultNumBackups   = 16
+	ConfigMaxNumWorkers       = 32
+	ConfigDefaultNumWorkers   = 4
 )
 
 var (
 	cfgFile, sourcePath, destinationPath, steamPath string
-	numBackupsToKeep                                int
+	numBackupsToKeep, numCopyWorkers                int
 	autoLaunch                                      bool
 )
 
@@ -75,12 +77,14 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&destinationPath, internal.ViperDestinationPath, internal.GetDefaultDestinationPath(), "destination backup path")
 	rootCmd.PersistentFlags().StringVar(&steamPath, internal.ViperSteamPath, ConfigDefaultSteamDir, "path for your Steam executable")
 	rootCmd.PersistentFlags().IntVar(&numBackupsToKeep, internal.ViperNumBackups, ConfigDefaultNumBackups, "maximum number of backups to keep")
+	rootCmd.PersistentFlags().IntVar(&numCopyWorkers, internal.ViperNumWorkers, ConfigDefaultNumWorkers, "total number of go routine workers (advanced usage)")
 	rootCmd.PersistentFlags().BoolVar(&autoLaunch, internal.ViperAutoLaunch, false, "auto-launch Noita after backup/restore operation")
 
 	commands := []string{
 		internal.ViperSourcePath,
 		internal.ViperDestinationPath,
 		internal.ViperNumBackups,
+		internal.ViperNumWorkers,
 		internal.ViperAutoLaunch,
 		internal.ViperSteamPath,
 	}

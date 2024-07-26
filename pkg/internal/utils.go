@@ -189,6 +189,17 @@ func buildDefaultDstPath() string {
 	return fmt.Sprintf("%s\\%s", path, ConfigDefaultDstPath)
 }
 
+func deletePath(l *LogRing, path string) error {
+	l.LogAndAppend(fmt.Sprintf(InfoDeletePath, path))
+
+	err := os.RemoveAll(path)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func LaunchExplorer() error {
 	dstPath := viper.GetString(ViperDestinationPath)
 

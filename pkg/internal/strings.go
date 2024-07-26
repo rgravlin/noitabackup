@@ -4,7 +4,6 @@ const (
 	StrLatest = "latest"
 )
 
-// Errors
 const (
 	ErrMaxBackupsExceeded         = "maximum backup threshold reached"
 	ErrInvalidBackups             = "max backups must be greater than zero"
@@ -25,6 +24,7 @@ const (
 	ErrLaunchingExplorer          = "error launching explorer"
 	ErrLaunchingNoita             = "error launching noita"
 	ErrNumBackups                 = "number of backups to keep must be between 1 and 64"
+	ErrNumWorkers                 = "number of workers must be between 1 and 32"
 	ErrSourcePathNotExist         = "source path does not exist"
 	ErrDestinationPathNotExist    = "destination path does not exist"
 	ErrSteamPathNotExist          = "steam path does not exist"
@@ -51,17 +51,20 @@ const (
 	InfoSuccessfulRestore = "successfully restored backup"
 	InfoDeletingSave00Bak = "deleting save00.bak folder"
 	InfoRename            = "renaming save00 to save00.bak"
+	InfoRenameRestore     = "renaming save00.bak to save00"
 	InfoDebugLogSet       = "debug log set to"
 	InfoAutoLaunchSet     = "auto-launch set to"
 	InfoStartingRestore   = "starting restore"
 	InfoStartingBackup    = "starting backup"
 	InfoErrorMessage      = "Configuration Error:"
+	InfoDeletePath        = "deleting path: %s"
 )
 
 // Viper
 const (
 	ViperAutoLaunch      = "auto-launch"
 	ViperNumBackups      = "num-backups"
+	ViperNumWorkers      = "num-workers"
 	ViperSourcePath      = "source-path"
 	ViperDestinationPath = "destination-path"
 	ViperSteamPath       = "steam-path"
@@ -84,4 +87,5 @@ const (
 
 const (
 	SldNumBackupsToKeep = "Number backups to keep"
+	SldNumWorkers       = "Number concurrent workers"
 )
