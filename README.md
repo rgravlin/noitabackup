@@ -1,22 +1,26 @@
 # Noita Backup and Restore (file) Utility
+![Noita Backup and Restore](images/noita-backup-restore-gui-default.png)
 
 The goal of this project is to have an easy to use Noita backup and restore solution.  I work mostly
 in Go, so that's why the language was chosen.  The UI was built with [GioUI](https://github.com/gioui/gio) and
 the command line interface with [cobra](https://github.com/spf13/cobra) 
 
-* Currently, Windows only!
 * Faster than Windows copy/paste!
+* Currently, Windows only
+* Command line interface
 * Supports custom source directory
 * Supports custom destination directory
-* Configured via environmental variables
-* Command line interface
-* Basic GUI launcher features:
-  * Backup and Restore (with auto-launch noita.exe)
-  * Number of backups to keep
-  * Open noita.exe
+* Configure via environmental variables and config file
+* Protects against corrupted backups
+* GUI launcher features:
+  * Backup and Restore
+  * Auto-Launch after backup/restore
+  * Open Noita
   * Explore Backups
+  * UI Debug Log
 
 # How To Use
+
 ## First Use (Backup)
 1. Download the latest release from this [GitHub Repo Releases](https://github.com/rgravlin/noitabackup/releases)
 1. Create the default backup directory `%USERPROFILE%\NoitaBackup`
@@ -41,8 +45,9 @@ The default configuration file is looked for in `$HOME/.noitabackup.yaml` and ha
 the CLI application.
 ```yaml
 ---
-auto-launch: 'true'
+auto-launch: 'false'
 num-backups: 16
+num-workers: 4
 destination-path: C:\\Users\\Demo\\NoitaBackups
 source-path: C:\\Users\\Demo\\AppData\\LocalLow\\Nolla_Games_Noita\\save00
 steam-path: C:\\Program Files (x86)\\Steam\\steam.exe
@@ -78,3 +83,11 @@ C:\> noitabackup.exe backup
 2024/06/12 07:14:24 total dirs copied: 8
 2024/06/12 07:14:24 total files copied: 10418
 ```
+
+## Screenshots
+### Noita restore process
+![Noita Restore Process](images/noita-backup-restore-gui-restore.png)
+### Noita is running (red background)
+![Noita UI Noita Running Red Background](images/noita-backup-autolaunch-noitarunning.png)
+### Enable Debug log
+![Noita UI Debug Log](images/noita-backup-restore-gui-debuglog-default.png)
