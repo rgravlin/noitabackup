@@ -39,17 +39,28 @@ the command line interface with [cobra](https://github.com/spf13/cobra)
     * Launch Noita if you have auto-launch enabled
 
 ## Advanced Use
-### Configuration File
+### Configuration Parameters
 
 The default configuration file is looked for in `$HOME/.noitabackup.yaml` and has the same configuration parameters as
 the CLI application.
+
+| Name               | Description                                            | Value                                            |
+|--------------------|--------------------------------------------------------|--------------------------------------------------|
+| `auto-launch`      | Auto-launch Noita after backup or restore              | `false`                                          |
+| `num-backups`      | Total number of backups to keep                        | `16`                                             |
+| `num-workers`      | Total number of Go routines to process copy operations | `4`                                              |
+| `source-path`      | Source Noita save game path                            | `%APPDATA%\..\LocalLow\Nolla_Games_Noita\save00` |
+| `destination-path` | Destination main backup path                           | `%USERPROFILE%\NoitaBackups`                     |
+| `steam-path`       | Steam executable path                                  | `C:\Program Files (x86)\Steam\steam.exe`         |
+
+### Configuration Example
 ```yaml
 ---
 auto-launch: 'false'
 num-backups: 16
 num-workers: 4
-destination-path: C:\\Users\\Demo\\NoitaBackups
 source-path: C:\\Users\\Demo\\AppData\\LocalLow\\Nolla_Games_Noita\\save00
+destination-path: C:\\Users\\Demo\\NoitaBackups
 steam-path: C:\\Program Files (x86)\\Steam\\steam.exe
 ```
 
